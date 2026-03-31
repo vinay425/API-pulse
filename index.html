@@ -397,32 +397,94 @@
       color: #60a5fa
     }
 
-    /* key    — blue   */
     .js {
       color: #4ade80
     }
 
-    /* string — green  */
     .jn {
       color: #fb923c
     }
 
-    /* number — orange */
     .jb {
       color: #a78bfa
     }
 
-    /* bool   — purple */
     .jnull {
       color: #94a3b8
     }
 
-    /* null   — grey   */
     .jerr {
       color: #f87171
     }
 
-    /* error text      */
+    /* Search bar inside viewer */
+    .json-search-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border)
+    }
+
+    .json-search-inp {
+      flex: 1;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-family: 'DM Mono', monospace;
+      font-size: .72rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color .15s
+    }
+
+    .json-search-inp:focus {
+      border-color: var(--accent)
+    }
+
+    .json-search-inp::placeholder {
+      color: var(--muted)
+    }
+
+    .json-search-count {
+      font-size: .68rem;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+      white-space: nowrap;
+      min-width: 40px;
+      text-align: right
+    }
+
+    .json-search-nav {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 2px 6px;
+      font-size: .68rem;
+      color: var(--muted);
+      cursor: pointer;
+      line-height: 1
+    }
+
+    .json-search-nav:hover {
+      border-color: var(--accent);
+      color: var(--accent)
+    }
+
+    /* Search highlight */
+    mark.sh {
+      background: #fef08a;
+      color: #1a1a1a;
+      border-radius: 2px;
+      padding: 0 1px
+    }
+
+    mark.sh.active {
+      background: #f97316;
+      color: #fff
+    }
 
     /* Health ring */
     .health-ring {
@@ -825,8 +887,9 @@
 ]</pre>
             <div class="px-3 py-2" style="background:var(--bg);border-top:1px solid var(--border)">
               <div class="text-xs" style="color:var(--muted)">
-                <span style="color:#f97316;font-weight:700">{env}</span> → replaced with your environment &nbsp;·&nbsp;
-                <span style="color:#f97316;font-weight:700">{client}</span> → replaced with selected client
+                <span style="color:#f97316;font-weight:700">{env}</span> → replaced with environment &nbsp;·&nbsp;
+                <span style="color:#f97316;font-weight:700">{client}</span> → replaced with client &nbsp;·&nbsp;
+                <span style="color:#22c55e;font-weight:700">GET only</span> — no payload needed
               </div>
             </div>
           </div>
@@ -1322,9 +1385,10 @@
     async function callAPI(name, url, idx) {
       const start = performance.now();
       try {
+        // Strict GET — no payload, no Content-Type (GET requests must not have a body)
         const r = await smartFetch(url, {
           method: 'GET',
-          headers: { 'Accept': 'application/json' }
+          headers: { 'Accept': 'application/json, text/plain, */*' }
         }, 12000);
         const elapsed = Math.round(performance.now() - start);
         const body = r._body || '';
@@ -1493,12 +1557,22 @@
         </div>
         <button class="json-viewer-copy" onclick="copyResponse('${id}')" style="flex-shrink:0">Copy</button>
       </div>
-      <pre class="json-body">${jsonDisplay}</pre>
+      <div class="json-search-bar">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color:var(--muted);flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="json-search-inp" id="search-inp-${id}" type="text" placeholder="Search in response…" oninput="searchInViewer('${id}',this.value)" onkeydown="searchNavKey(event,'${id}')" />
+        <span class="json-search-count" id="search-count-${id}"></span>
+        <button class="json-search-nav" onclick="searchNav('${id}',-1)" title="Prev (Shift+Enter)">&#8593;</button>
+        <button class="json-search-nav" onclick="searchNav('${id}',1)" title="Next (Enter)">&#8595;</button>
+        <button class="json-search-nav" onclick="clearSearch('${id}')" title="Clear">&#10005;</button>
+      </div>
+      <pre class="json-body" id="body-pre-${id}">${jsonDisplay}</pre>
     </div>`;
       if (existing) { existing.replaceWith(card); }
       else { document.getElementById('api-cards-grid').appendChild(card); }
-      // store raw body for copy
+      // store raw body for copy and original highlighted HTML for search reset
       card._rawBody = result.body || '';
+      card._jsonDisplay = jsonDisplay;      // original syntax-highlighted HTML
+      card._searchIdx = 0;                  // current match index
       applyFilter();
     }
 
@@ -1556,6 +1630,95 @@
         const chev = document.getElementById('chevron-' + id);
         if (chev) chev.style.transform = '';
       });
+    }
+
+    // ─── PER-VIEWER SEARCH ────────────────────────────────────
+    function searchInViewer(id, query) {
+      const pre = document.getElementById('body-pre-' + id);
+      const count = document.getElementById('search-count-' + id);
+      const card = document.getElementById('card-' + id);
+      if (!pre || !card) return;
+
+      // Restore original HTML (clears previous marks)
+      const original = card._jsonDisplay || pre.innerHTML;
+      if (!card._jsonDisplay) card._jsonDisplay = pre.innerHTML;
+
+      const q = query.trim();
+      if (!q) {
+        pre.innerHTML = card._jsonDisplay;
+        count.textContent = '';
+        card._searchIdx = 0;
+        return;
+      }
+
+      // Escape regex special chars in query
+      const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const rx = new RegExp('(' + escaped + ')', 'gi');
+
+      // Work on the text content to avoid splitting HTML tags
+      // Replace inside text nodes only — use a DOM approach
+      const tmp = document.createElement('div');
+      tmp.innerHTML = card._jsonDisplay;
+      highlightTextNodes(tmp, rx);
+      pre.innerHTML = tmp.innerHTML;
+
+      // Count marks
+      const marks = pre.querySelectorAll('mark.sh');
+      card._searchIdx = 0;
+      count.textContent = marks.length ? '1/' + marks.length : '0';
+
+      if (marks.length) {
+        marks.forEach(m => m.classList.remove('active'));
+        marks[0].classList.add('active');
+        marks[0].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+
+    function highlightTextNodes(node, rx) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent;
+        if (!rx.test(text)) return;
+        rx.lastIndex = 0;
+        const span = document.createElement('span');
+        span.innerHTML = text
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          .replace(rx, '<mark class="sh">$1</mark>');
+        node.parentNode.replaceChild(span, node);
+      } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName !== 'MARK') {
+        // Don't recurse into script/style
+        if (['SCRIPT', 'STYLE'].includes(node.tagName)) return;
+        Array.from(node.childNodes).forEach(child => highlightTextNodes(child, rx));
+      }
+    }
+
+    function searchNav(id, dir) {
+      const pre = document.getElementById('body-pre-' + id);
+      const count = document.getElementById('search-count-' + id);
+      const card = document.getElementById('card-' + id);
+      if (!pre || !card) return;
+      const marks = pre.querySelectorAll('mark.sh');
+      if (!marks.length) return;
+      marks[card._searchIdx].classList.remove('active');
+      card._searchIdx = (card._searchIdx + dir + marks.length) % marks.length;
+      marks[card._searchIdx].classList.add('active');
+      marks[card._searchIdx].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      count.textContent = (card._searchIdx + 1) + '/' + marks.length;
+    }
+
+    function searchNavKey(e, id) {
+      if (e.key === 'Enter') { e.shiftKey ? searchNav(id, -1) : searchNav(id, 1); }
+      if (e.key === 'Escape') clearSearch(id);
+    }
+
+    function clearSearch(id) {
+      const inp = document.getElementById('search-inp-' + id);
+      const pre = document.getElementById('body-pre-' + id);
+      const count = document.getElementById('search-count-' + id);
+      const card = document.getElementById('card-' + id);
+      if (inp) inp.value = '';
+      if (count) count.textContent = '';
+      if (pre && card && card._jsonDisplay) pre.innerHTML = card._jsonDisplay;
+      if (card) card._searchIdx = 0;
     }
 
     // ─── FILTER ───────────────────────────────────────────────

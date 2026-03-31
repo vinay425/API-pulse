@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <rect width="192" height="192" rx="40" fill="#2563eb"/>
+  <!-- Radial pulse rings -->
+  <circle cx="96" cy="96" r="55" stroke="rgba(255,255,255,0.15)" stroke-width="2" fill="none"/>
+  <circle cx="96" cy="96" r="38" stroke="rgba(255,255,255,0.2)" stroke-width="2" fill="none"/>
+  <!-- Center -->
+  <circle cx="96" cy="96" r="18" fill="white"/>
+  <circle cx="96" cy="96" r="8" fill="#2563eb"/>
+  <!-- Axis lines -->
+  <line x1="96" y1="18" x2="96" y2="58" stroke="white" stroke-width="8" stroke-linecap="round"/>
+  <line x1="96" y1="134" x2="96" y2="174" stroke="white" stroke-width="8" stroke-linecap="round"/>
+  <line x1="18" y1="96" x2="58" y2="96" stroke="white" stroke-width="8" stroke-linecap="round"/>
+  <line x1="134" y1="96" x2="174" y2="96" stroke="white" stroke-width="8" stroke-linecap="round"/>
+</svg>

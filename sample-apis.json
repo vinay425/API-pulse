@@ -1,0 +1,34 @@
+[
+  {
+    "name": "GetUserProfile",
+    "url": "https://api.{env}.example.com/{client}/users/profile"
+  },
+  {
+    "name": "ListProducts",
+    "url": "https://api.{env}.example.com/{client}/products"
+  },
+  {
+    "name": "GetOrderHistory",
+    "url": "https://api.{env}.example.com/{client}/orders"
+  },
+  {
+    "name": "CheckInventory",
+    "url": "https://api.{env}.example.com/{client}/inventory/status"
+  },
+  {
+    "name": "GetAnalytics",
+    "url": "https://api.{env}.example.com/{client}/analytics/summary"
+  },
+  {
+    "name": "FetchNotifications",
+    "url": "https://api.{env}.example.com/{client}/notifications"
+  },
+  {
+    "name": "ValidateSession",
+    "url": "https://api.{env}.example.com/{client}/auth/session"
+  },
+  {
+    "name": "GetSettings",
+    "url": "https://api.{env}.example.com/{client}/settings"
+  }
+]

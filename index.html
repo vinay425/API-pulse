@@ -913,7 +913,7 @@
                 <line x1="12" y1="8" x2="12" y2="12" />
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
-              CORS issues auto-retried via proxy fallback
+              Direct API calls only
             </div>
             <select id="client-dropdown" class="inp mt-2 hidden" style="cursor:pointer">
               <option value="">Select client…</option>
@@ -1189,74 +1189,34 @@
       return [...ids];
     }
 
-    // ─── CORS-AWARE FETCH ────────────────────────────────────────
-    // Each proxy has a different URL format — some need encoded, some don't
-    const CORS_PROXIES = [
-      { build: u => u, label: 'direct' },
-      { build: u => 'https://corsproxy.io/?' + encodeURIComponent(u), label: 'corsproxy' },
-      { build: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u), label: 'allorigins' },
-      { build: u => 'https://cors-anywhere.herokuapp.com/' + u, label: 'cors-anywhere' },
-    ];
+    // ─── DIRECT FETCH ────────────────────────────────────────
+    // Direct fetch only - no CORS proxy fallbacks
 
-    // Detect if a response body is an HTML error page (proxy or server returning HTML)
+    // Detect if a response body is an HTML error page (server returning HTML)
     function isHTMLResponse(text) {
       const t = text.trim().toLowerCase();
       return t.startsWith('<!doctype') || t.startsWith('<html') || t.startsWith('<!-');
     }
 
-    // Smart fetch: tries direct first, then falls back through CORS proxies
-    // opts = API-level options (method, headers). Proxies only get method, no custom headers.
+    // Direct fetch: only tries direct connection
     async function smartFetch(url, opts = {}, timeoutMs = 12000) {
-      let lastErr = null;
+      try {
+        const r = await fetchWithTimeout(url, opts, timeoutMs);
 
-      for (let i = 0; i < CORS_PROXIES.length; i++) {
-        const proxy = CORS_PROXIES[i];
-        const proxyUrl = proxy.build(url);
+        // Read body once and store
+        const bodyText = await r.text();
 
-        // For proxy requests: only pass method, drop custom headers that confuse proxies
-        const fetchOpts = i === 0
-          ? { ...opts }
-          : { method: opts.method || 'GET' };
+        return {
+          ok: r.ok,
+          status: r.status,
+          statusText: r.statusText,
+          _body: bodyText,
+          _proxy: 'direct'
+        };
 
-        try {
-          const r = await fetchWithTimeout(proxyUrl, fetchOpts, timeoutMs);
-
-          // CORS opaque responses come back as status 0 — treat as CORS block, try proxy
-          if (r.status === 0 && i < CORS_PROXIES.length - 1) {
-            lastErr = new Error('Opaque CORS response (status 0)');
-            continue;
-          }
-
-          // Read body once and store
-          const bodyText = await r.text();
-
-          // If a proxy returned its own HTML error page, skip to next proxy
-          if (isHTMLResponse(bodyText) && i < CORS_PROXIES.length - 1) {
-            lastErr = new Error('Proxy returned HTML, not API response');
-            continue;
-          }
-
-          return {
-            ok: r.ok,
-            status: r.status,
-            statusText: r.statusText,
-            _body: bodyText,
-            _proxy: proxy.label
-          };
-
-        } catch (e) {
-          lastErr = e;
-          const shouldRetry = (e instanceof TypeError) ||
-            e.message.includes('Failed to fetch') ||
-            e.message.includes('NetworkError') ||
-            e.message.includes('CORS') ||
-            e.name === 'TypeError';
-          if (!shouldRetry || i === CORS_PROXIES.length - 1) break;
-          // try next proxy silently
-        }
+      } catch (e) {
+        throw e;
       }
-
-      throw lastErr || new Error('All fetch attempts failed');
     }
 
     // Legacy wrapper for fetchClients (returns native Response-like object)

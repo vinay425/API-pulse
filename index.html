@@ -1,286 +1,813 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<meta name="theme-color" content="#0f1117"/>
-<meta name="description" content="APIPulse — Production-grade API health monitoring & testing dashboard"/>
-<link rel="manifest" href="manifest.json"/>
-<link rel="icon" href="favicon.svg" type="image/svg+xml"/>
-<link rel="apple-touch-icon" href="icon-192.svg"/>
-<title>APIPulse — API Health Monitor</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800;0,6..12,900;1,6..12,400&display=swap" rel="stylesheet"/>
-<script>
-tailwind.config = {
-  darkMode: ['attribute', '[data-theme="dark"]'],
-  theme: {
-    extend: {
-      fontFamily: { sans: ['Nunito Sans','sans-serif'], mono: ['DM Mono','monospace'] },
-      colors: {
-        pulse: {
-          bg: 'var(--bg)',
-          surface: 'var(--surface)',
-          border: 'var(--border)',
-          text: 'var(--text)',
-          muted: 'var(--muted)',
-          accent: 'var(--accent)',
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#0f1117" />
+  <meta name="description" content="APIPulse — Production-grade API health monitoring & testing dashboard" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icon-192.svg" />
+  <title>APIPulse — API Health Monitor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800;0,6..12,900;1,6..12,400&display=swap"
+    rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: ['attribute', '[data-theme="dark"]'],
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Nunito Sans', 'sans-serif'], mono: ['DM Mono', 'monospace'] },
+          colors: {
+            pulse: {
+              bg: 'var(--bg)',
+              surface: 'var(--surface)',
+              border: 'var(--border)',
+              text: 'var(--text)',
+              muted: 'var(--muted)',
+              accent: 'var(--accent)',
+            }
+          }
         }
       }
     }
-  }
-}
-</script>
-<style>
-:root {
-  --bg:#f6f7fb;--surface:#ffffff;--border:#e2e5ef;--text:#0f1117;--muted:#6b7280;--accent:#2563eb;
-  --card-shadow:0 1px 4px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05);
-}
-[data-theme="dark"] {
-  --bg:#0c0d12;--surface:#13151f;--border:#1e2130;--text:#e8eaf0;--muted:#5a6078;--accent:#3b82f6;
-  --card-shadow:0 1px 4px rgba(0,0,0,.4),0 4px 24px rgba(0,0,0,.3);
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'Nunito Sans',sans-serif;min-height:100vh;transition:background .25s,color .25s}
-::-webkit-scrollbar{width:5px;height:5px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+  </script>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --surface: #ffffff;
+      --border: #e2e5ef;
+      --text: #0f1117;
+      --muted: #6b7280;
+      --accent: #2563eb;
+      --card-shadow: 0 1px 4px rgba(0, 0, 0, .07), 0 4px 16px rgba(0, 0, 0, .05);
+    }
 
-/* Grid noise texture */
-body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:radial-gradient(circle at 20% 20%,rgba(59,130,246,.06) 0%,transparent 50%),
-    radial-gradient(circle at 80% 80%,rgba(99,102,241,.04) 0%,transparent 50%);
-}
+    [data-theme="dark"] {
+      --bg: #0c0d12;
+      --surface: #13151f;
+      --border: #1e2130;
+      --text: #e8eaf0;
+      --muted: #5a6078;
+      --accent: #3b82f6;
+      --card-shadow: 0 1px 4px rgba(0, 0, 0, .4), 0 4px 24px rgba(0, 0, 0, .3);
+    }
 
-/* Card */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--card-shadow);transition:box-shadow .2s,transform .15s}
-.card:hover{box-shadow:0 2px 8px rgba(0,0,0,.1),0 8px 32px rgba(0,0,0,.1)}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
 
-/* Input */
-.inp{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;padding:9px 14px;font-family:'DM Mono',monospace;font-size:.82rem;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s}
-.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
-.inp::placeholder{color:var(--muted)}
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Nunito Sans', sans-serif;
+      min-height: 100vh;
+      transition: background .25s, color .25s
+    }
 
-/* Btn */
-.btn{border-radius:8px;font-family:'Nunito Sans',sans-serif;font-weight:700;cursor:pointer;transition:all .15s;border:none;outline:none;display:inline-flex;align-items:center;gap:6px}
-.btn-primary{background:var(--accent);color:#fff;padding:9px 18px;font-size:.83rem}
-.btn-primary:hover{filter:brightness(1.15)}
-.btn-ghost{background:transparent;color:var(--muted);padding:8px 14px;font-size:.82rem;border:1.5px solid var(--border)}
-.btn-ghost:hover{border-color:var(--accent);color:var(--text)}
-.btn-sm{padding:6px 12px;font-size:.78rem}
-.btn:disabled{opacity:.45;cursor:not-allowed;filter:none!important}
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px
+    }
 
-/* Status dot */
-.dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
-.dot-green{background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.5)}
-.dot-orange{background:#f97316;box-shadow:0 0 6px rgba(249,115,22,.5)}
-.dot-red{background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,.5)}
-.dot-grey{background:var(--muted)}
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
 
-/* Badge */
-.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:.72rem;font-weight:600;font-family:'DM Mono',monospace}
-.badge-green{background:rgba(34,197,94,.12);color:#22c55e}
-.badge-orange{background:rgba(249,115,22,.12);color:#f97316}
-.badge-red{background:rgba(239,68,68,.12);color:#ef4444}
-.badge-blue{background:rgba(59,130,246,.12);color:#3b82f6}
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 99px
+    }
 
-/* Progress bar */
-.progress-track{height:5px;background:var(--border);border-radius:99px;overflow:hidden}
-.progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#3b82f6,#6366f1);transition:width .4s cubic-bezier(.4,0,.2,1)}
+    /* Grid noise texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background-image: radial-gradient(circle at 20% 20%, rgba(59, 130, 246, .06) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(99, 102, 241, .04) 0%, transparent 50%);
+    }
 
-/* ── GLOBAL PROGRESS BAR (sticky below header) ── */
-#global-progress-bar{
-  position:sticky;top:56px;z-index:49;
-  background:var(--surface);
-  border-bottom:1px solid var(--border);
-  padding:10px 20px 12px;
-  display:none;
-  transition:opacity .25s;
-}
-#global-progress-bar.visible{display:block}
-#gp-track{height:7px;background:var(--border);border-radius:99px;overflow:hidden;position:relative}
-#gp-pass-fill{position:absolute;left:0;top:0;height:100%;background:#22c55e;border-radius:99px;transition:width .4s cubic-bezier(.4,0,.2,1)}
-#gp-warn-fill{position:absolute;top:0;height:100%;background:#f97316;border-radius:99px;transition:width .4s cubic-bezier(.4,0,.2,1),left .4s cubic-bezier(.4,0,.2,1)}
-#gp-fail-fill{position:absolute;top:0;height:100%;background:#ef4444;border-radius:99px;transition:width .4s cubic-bezier(.4,0,.2,1),left .4s cubic-bezier(.4,0,.2,1)}
-#gp-shimmer{position:absolute;left:0;top:0;height:100%;width:100%;
-  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.18) 50%,transparent 100%);
-  background-size:200% 100%;
-  animation:gpShimmer 1.4s infinite linear;
-  border-radius:99px;
-  pointer-events:none;
-}
-@keyframes gpShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: var(--card-shadow);
+      transition: box-shadow .2s, transform .15s
+    }
 
-/* Collapse JSON */
-.json-collapse{display:none;font-family:'DM Mono',monospace;font-size:.75rem;line-height:1.6;white-space:pre-wrap;word-break:break-all;max-height:280px;overflow-y:auto;color:var(--muted);padding:12px;background:var(--bg);border-radius:8px;margin-top:10px;border:1px solid var(--border)}
-.json-collapse.open{display:block}
+    .card:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .1), 0 8px 32px rgba(0, 0, 0, .1)
+    }
 
-/* Health ring */
-.health-ring{transform:rotate(-90deg)}
-.health-track{fill:none;stroke:var(--border);stroke-width:6}
-.health-fill{fill:none;stroke:#22c55e;stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(.4,0,.2,1)}
+    /* Input */
+    .inp {
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-family: 'DM Mono', monospace;
+      font-size: .82rem;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s
+    }
 
-/* Shimmer loading */
-@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
-.shimmer{background:linear-gradient(90deg,var(--border) 25%,var(--surface) 50%,var(--border) 75%);background-size:400px 100%;animation:shimmer 1.4s infinite linear;border-radius:6px}
+    .inp:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, .12)
+    }
 
-/* Pulse animation for running APIs */
-@keyframes pulse-ring{0%{box-shadow:0 0 0 0 rgba(59,130,246,.35)}70%{box-shadow:0 0 0 8px rgba(59,130,246,0)}100%{box-shadow:0 0 0 0 rgba(59,130,246,0)}}
-.running .dot{animation:pulse-ring 1.2s infinite}
+    .inp::placeholder {
+      color: var(--muted)
+    }
 
-/* Slide in */
-@keyframes spin{to{transform:rotate(360deg)}}
-@keyframes slideIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.api-card{animation:slideIn .25s ease forwards}
+    /* Btn */
+    .btn {
+      border-radius: 8px;
+      font-family: 'Nunito Sans', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .15s;
+      border: none;
+      outline: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px
+    }
 
-/* Upload zone */
-.upload-zone{border:2px dashed var(--border);border-radius:12px;padding:28px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
-.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(59,130,246,.04)}
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      padding: 9px 18px;
+      font-size: .83rem
+    }
 
-/* Toggle */
-.toggle{position:relative;width:42px;height:22px;cursor:pointer}
-.toggle input{opacity:0;position:absolute}
-.toggle-track{width:42px;height:22px;background:var(--border);border-radius:99px;transition:background .2s}
-.toggle input:checked ~ .toggle-track{background:var(--accent)}
-.toggle-thumb{position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .2s;pointer-events:none}
-.toggle input:checked ~ .toggle-thumb{transform:translateX(20px)}
+    .btn-primary:hover {
+      filter: brightness(1.15)
+    }
 
-/* Section header */
-.section-label{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 14px;
+      font-size: .82rem;
+      border: 1.5px solid var(--border)
+    }
 
-/* Divider */
-.divider{height:1px;background:var(--border);margin:18px 0}
+    .btn-ghost:hover {
+      border-color: var(--accent);
+      color: var(--text)
+    }
 
-/* Toast */
-#toast{position:fixed;bottom:24px;right:24px;z-index:1000;display:flex;flex-direction:column;gap:8px}
-.toast-item{padding:12px 18px;border-radius:10px;font-size:.82rem;font-weight:500;display:flex;align-items:center;gap:8px;animation:slideIn .2s ease;box-shadow:0 4px 20px rgba(0,0,0,.2);max-width:320px}
-.toast-success{background:#022c22;color:#4ade80;border:1px solid #166534}
-.toast-error{background:#2c0a0a;color:#f87171;border:1px solid #991b1b}
-.toast-info{background:#0c1a3a;color:#93c5fd;border:1px solid #1e3a8a}
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: .78rem
+    }
 
-/* Filter tabs */
-.filter-tab{padding:6px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;border:none;background:transparent;color:var(--muted)}
-.filter-tab.active{background:var(--accent);color:#fff}
-.filter-tab:hover:not(.active){color:var(--text)}
+    .btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+      filter: none !important
+    }
 
-/* Score color */
-.score-excellent{color:#22c55e}.score-good{color:#84cc16}.score-warn{color:#f97316}.score-bad{color:#ef4444}
+    /* Status dot */
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0
+    }
 
-/* Scrollable results */
-#results-container{max-height:calc(100vh - 380px);overflow-y:auto;padding-right:2px}
+    .dot-green {
+      background: #22c55e;
+      box-shadow: 0 0 6px rgba(34, 197, 94, .5)
+    }
 
-/* Responsive */
-@media(max-width:768px){
-  #results-container{max-height:none}
-  .control-grid{grid-template-columns:1fr!important}
-}
-</style>
+    .dot-orange {
+      background: #f97316;
+      box-shadow: 0 0 6px rgba(249, 115, 22, .5)
+    }
+
+    .dot-red {
+      background: #ef4444;
+      box-shadow: 0 0 6px rgba(239, 68, 68, .5)
+    }
+
+    .dot-grey {
+      background: var(--muted)
+    }
+
+    /* Badge */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 9px;
+      border-radius: 99px;
+      font-size: .72rem;
+      font-weight: 600;
+      font-family: 'DM Mono', monospace
+    }
+
+    .badge-green {
+      background: rgba(34, 197, 94, .12);
+      color: #22c55e
+    }
+
+    .badge-orange {
+      background: rgba(249, 115, 22, .12);
+      color: #f97316
+    }
+
+    .badge-red {
+      background: rgba(239, 68, 68, .12);
+      color: #ef4444
+    }
+
+    .badge-blue {
+      background: rgba(59, 130, 246, .12);
+      color: #3b82f6
+    }
+
+    /* Progress bar */
+    .progress-track {
+      height: 5px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #3b82f6, #6366f1);
+      transition: width .4s cubic-bezier(.4, 0, .2, 1)
+    }
+
+    /* ── GLOBAL PROGRESS BAR (sticky below header) ── */
+    #global-progress-bar {
+      position: sticky;
+      top: 56px;
+      z-index: 49;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px 12px;
+      display: none;
+      transition: opacity .25s;
+    }
+
+    #global-progress-bar.visible {
+      display: block
+    }
+
+    #gp-track {
+      height: 7px;
+      background: var(--border);
+      border-radius: 99px;
+      overflow: hidden;
+      position: relative
+    }
+
+    #gp-pass-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: #22c55e;
+      border-radius: 99px;
+      transition: width .4s cubic-bezier(.4, 0, .2, 1)
+    }
+
+    #gp-warn-fill {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      background: #f97316;
+      border-radius: 99px;
+      transition: width .4s cubic-bezier(.4, 0, .2, 1), left .4s cubic-bezier(.4, 0, .2, 1)
+    }
+
+    #gp-fail-fill {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      background: #ef4444;
+      border-radius: 99px;
+      transition: width .4s cubic-bezier(.4, 0, .2, 1), left .4s cubic-bezier(.4, 0, .2, 1)
+    }
+
+    #gp-shimmer {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, .18) 50%, transparent 100%);
+      background-size: 200% 100%;
+      animation: gpShimmer 1.4s infinite linear;
+      border-radius: 99px;
+      pointer-events: none;
+    }
+
+    @keyframes gpShimmer {
+      0% {
+        background-position: 200% 0
+      }
+
+      100% {
+        background-position: -200% 0
+      }
+    }
+
+    /* Collapse JSON */
+    .json-viewer {
+      display: none;
+      margin-top: 10px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border)
+    }
+
+    .json-viewer.open {
+      display: block
+    }
+
+    .json-viewer-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border)
+    }
+
+    .json-viewer-toolbar span {
+      font-size: .68rem;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted)
+    }
+
+    .json-viewer-copy {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 2px 7px;
+      font-size: .68rem;
+      font-family: 'DM Mono', monospace;
+      color: var(--muted);
+      cursor: pointer
+    }
+
+    .json-viewer-copy:hover {
+      border-color: var(--accent);
+      color: var(--accent)
+    }
+
+    .json-body {
+      font-family: 'DM Mono', monospace;
+      font-size: .74rem;
+      line-height: 1.7;
+      padding: 12px 14px;
+      background: var(--bg);
+      overflow-x: auto;
+      max-height: 320px;
+      overflow-y: auto;
+      margin: 0;
+      white-space: pre
+    }
+
+    /* JSON syntax colours */
+    .jk {
+      color: #60a5fa
+    }
+
+    /* key    — blue   */
+    .js {
+      color: #4ade80
+    }
+
+    /* string — green  */
+    .jn {
+      color: #fb923c
+    }
+
+    /* number — orange */
+    .jb {
+      color: #a78bfa
+    }
+
+    /* bool   — purple */
+    .jnull {
+      color: #94a3b8
+    }
+
+    /* null   — grey   */
+    .jerr {
+      color: #f87171
+    }
+
+    /* error text      */
+
+    /* Health ring */
+    .health-ring {
+      transform: rotate(-90deg)
+    }
+
+    .health-track {
+      fill: none;
+      stroke: var(--border);
+      stroke-width: 6
+    }
+
+    .health-fill {
+      fill: none;
+      stroke: #22c55e;
+      stroke-width: 6;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s cubic-bezier(.4, 0, .2, 1)
+    }
+
+    /* Shimmer loading */
+    @keyframes shimmer {
+      0% {
+        background-position: -400px 0
+      }
+
+      100% {
+        background-position: 400px 0
+      }
+    }
+
+    .shimmer {
+      background: linear-gradient(90deg, var(--border) 25%, var(--surface) 50%, var(--border) 75%);
+      background-size: 400px 100%;
+      animation: shimmer 1.4s infinite linear;
+      border-radius: 6px
+    }
+
+    /* Pulse animation for running APIs */
+    @keyframes pulse-ring {
+      0% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, .35)
+      }
+
+      70% {
+        box-shadow: 0 0 0 8px rgba(59, 130, 246, 0)
+      }
+
+      100% {
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0)
+      }
+    }
+
+    .running .dot {
+      animation: pulse-ring 1.2s infinite
+    }
+
+    /* Slide in */
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .api-card {
+      animation: slideIn .25s ease forwards
+    }
+
+    /* Upload zone */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s
+    }
+
+    .upload-zone:hover,
+    .upload-zone.drag {
+      border-color: var(--accent);
+      background: rgba(59, 130, 246, .04)
+    }
+
+    /* Toggle */
+    .toggle {
+      position: relative;
+      width: 42px;
+      height: 22px;
+      cursor: pointer
+    }
+
+    .toggle input {
+      opacity: 0;
+      position: absolute
+    }
+
+    .toggle-track {
+      width: 42px;
+      height: 22px;
+      background: var(--border);
+      border-radius: 99px;
+      transition: background .2s
+    }
+
+    .toggle input:checked~.toggle-track {
+      background: var(--accent)
+    }
+
+    .toggle-thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform .2s;
+      pointer-events: none
+    }
+
+    .toggle input:checked~.toggle-thumb {
+      transform: translateX(20px)
+    }
+
+    /* Section header */
+    .section-label {
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 18px 0
+    }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px
+    }
+
+    .toast-item {
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: .82rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: slideIn .2s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .2);
+      max-width: 320px
+    }
+
+    .toast-success {
+      background: #022c22;
+      color: #4ade80;
+      border: 1px solid #166534
+    }
+
+    .toast-error {
+      background: #2c0a0a;
+      color: #f87171;
+      border: 1px solid #991b1b
+    }
+
+    .toast-info {
+      background: #0c1a3a;
+      color: #93c5fd;
+      border: 1px solid #1e3a8a
+    }
+
+    /* Filter tabs */
+    .filter-tab {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      border: none;
+      background: transparent;
+      color: var(--muted)
+    }
+
+    .filter-tab.active {
+      background: var(--accent);
+      color: #fff
+    }
+
+    .filter-tab:hover:not(.active) {
+      color: var(--text)
+    }
+
+    /* Score color */
+    .score-excellent {
+      color: #22c55e
+    }
+
+    .score-good {
+      color: #84cc16
+    }
+
+    .score-warn {
+      color: #f97316
+    }
+
+    .score-bad {
+      color: #ef4444
+    }
+
+    /* Scrollable results */
+    #results-container {
+      overflow-y: visible
+    }
+
+    /* Responsive */
+    @media(max-width:768px) {
+      #results-container {
+        max-height: none
+      }
+
+      .control-grid {
+        grid-template-columns: 1fr !important
+      }
+    }
+  </style>
 </head>
+
 <body>
-<div id="toast"></div>
+  <div id="toast"></div>
 
-<!-- TOP BAR -->
-<header class="sticky top-0 z-50" style="background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(10px)">
-  <div class="max-w-7xl mx-auto px-5 py-3 flex items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
-        <rect width="30" height="30" rx="8" fill="#2563eb"/>
-        <circle cx="15" cy="15" r="6" stroke="white" stroke-width="2.5" fill="none"/>
-        <circle cx="15" cy="15" r="2.5" fill="white"/>
-        <path d="M15 4 L15 9" stroke="white" stroke-width="2" stroke-linecap="round"/>
-        <path d="M15 21 L15 26" stroke="white" stroke-width="2" stroke-linecap="round"/>
-        <path d="M4 15 L9 15" stroke="white" stroke-width="2" stroke-linecap="round"/>
-        <path d="M21 15 L26 15" stroke="white" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-      <div>
-        <div class="font-black text-lg leading-none tracking-tight" style="color:var(--text)">APIPulse</div>
-        <div class="text-xs font-mono" style="color:var(--muted)">API Health Monitor</div>
-      </div>
-    </div>
-    <div class="flex items-center gap-3">
-      <span id="status-bar" class="text-xs font-mono hidden sm:flex items-center gap-2" style="color:var(--muted)">
-        <span class="dot dot-grey" id="status-dot"></span>
-        <span id="status-text">Idle</span>
-      </span>
-      <button onclick="exportPDF()" class="btn btn-ghost btn-sm hidden" id="export-btn">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Export PDF
-      </button>
-      <label class="toggle">
-        <input type="checkbox" id="theme-toggle" onchange="toggleTheme(this)"/>
-        <div class="toggle-track"></div>
-        <div class="toggle-thumb"></div>
-      </label>
-      <span class="text-xs font-mono" style="color:var(--muted)" id="theme-label">Dark</span>
-    </div>
-  </div>
-</header>
-
-<!-- ── GLOBAL STICKY PROGRESS BAR ── -->
-<div id="global-progress-bar">
-  <div class="max-w-7xl mx-auto">
-    <!-- Top row: label + percent + counts -->
-    <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
+  <!-- TOP BAR -->
+  <header class="sticky top-0 z-50"
+    style="background:var(--surface);border-bottom:1px solid var(--border);backdrop-filter:blur(10px)">
+    <div class="max-w-7xl mx-auto px-5 py-3 flex items-center justify-between gap-4">
       <div class="flex items-center gap-3">
-        <span id="gp-icon" class="text-base" style="line-height:1">⚡</span>
-        <span id="gp-label" class="text-xs font-bold" style="color:var(--text)">Preparing…</span>
+        <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+          <rect width="30" height="30" rx="8" fill="#2563eb" />
+          <circle cx="15" cy="15" r="6" stroke="white" stroke-width="2.5" fill="none" />
+          <circle cx="15" cy="15" r="2.5" fill="white" />
+          <path d="M15 4 L15 9" stroke="white" stroke-width="2" stroke-linecap="round" />
+          <path d="M15 21 L15 26" stroke="white" stroke-width="2" stroke-linecap="round" />
+          <path d="M4 15 L9 15" stroke="white" stroke-width="2" stroke-linecap="round" />
+          <path d="M21 15 L26 15" stroke="white" stroke-width="2" stroke-linecap="round" />
+        </svg>
+        <div>
+          <div class="font-black text-lg leading-none tracking-tight" style="color:var(--text)">APIPulse</div>
+          <div class="text-xs font-mono" style="color:var(--muted)">API Health Monitor</div>
+        </div>
       </div>
       <div class="flex items-center gap-3">
-        <span id="gp-pass-count" class="text-xs font-mono font-bold" style="color:#22c55e">0 passed</span>
-        <span id="gp-fail-count" class="text-xs font-mono font-bold" style="color:#ef4444">0 failed</span>
-        <span id="gp-pct-badge" class="text-sm font-black" style="color:var(--accent);min-width:42px;text-align:right">0%</span>
+        <span id="status-bar" class="text-xs font-mono hidden sm:flex items-center gap-2" style="color:var(--muted)">
+          <span class="dot dot-grey" id="status-dot"></span>
+          <span id="status-text">Idle</span>
+        </span>
+        <button onclick="exportPDF()" class="btn btn-ghost btn-sm hidden" id="export-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          Export PDF
+        </button>
+        <label class="toggle">
+          <input type="checkbox" id="theme-toggle" onchange="toggleTheme(this)" />
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+        <span class="text-xs font-mono" style="color:var(--muted)" id="theme-label">Dark</span>
       </div>
     </div>
-    <!-- Segmented bar -->
-    <div id="gp-track">
-      <div id="gp-pass-fill" style="width:0%"></div>
-      <div id="gp-warn-fill" style="width:0%;left:0%"></div>
-      <div id="gp-fail-fill" style="width:0%;left:0%"></div>
-      <div id="gp-shimmer"></div>
-    </div>
-    <!-- Bottom row: current API name -->
-    <div class="mt-1.5 flex items-center justify-between">
-      <span id="gp-current" class="text-xs font-mono truncate" style="color:var(--muted);max-width:60%"></span>
-      <span id="gp-fraction" class="text-xs font-mono" style="color:var(--muted)">0 / 0</span>
+  </header>
+
+  <!-- ── GLOBAL STICKY PROGRESS BAR ── -->
+  <div id="global-progress-bar">
+    <div class="max-w-7xl mx-auto">
+      <!-- Top row: label + percent + counts -->
+      <div class="flex items-center justify-between mb-2 gap-3 flex-wrap">
+        <div class="flex items-center gap-3">
+          <span id="gp-icon" class="text-base" style="line-height:1">⚡</span>
+          <span id="gp-label" class="text-xs font-bold" style="color:var(--text)">Preparing…</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <span id="gp-pass-count" class="text-xs font-mono font-bold" style="color:#22c55e">0 passed</span>
+          <span id="gp-fail-count" class="text-xs font-mono font-bold" style="color:#ef4444">0 failed</span>
+          <span id="gp-pct-badge" class="text-sm font-black"
+            style="color:var(--accent);min-width:42px;text-align:right">0%</span>
+        </div>
+      </div>
+      <!-- Segmented bar -->
+      <div id="gp-track">
+        <div id="gp-pass-fill" style="width:0%"></div>
+        <div id="gp-warn-fill" style="width:0%;left:0%"></div>
+        <div id="gp-fail-fill" style="width:0%;left:0%"></div>
+        <div id="gp-shimmer"></div>
+      </div>
+      <!-- Bottom row: current API name -->
+      <div class="mt-1.5 flex items-center justify-between">
+        <span id="gp-current" class="text-xs font-mono truncate" style="color:var(--muted);max-width:60%"></span>
+        <span id="gp-fraction" class="text-xs font-mono" style="color:var(--muted)">0 / 0</span>
+      </div>
     </div>
   </div>
-</div>
 
-<main class="max-w-7xl mx-auto px-5 py-6 relative z-10">
-  <div class="grid gap-5" style="grid-template-columns:340px 1fr" id="layout-grid">
+  <main class="max-w-7xl mx-auto px-5 py-6 relative z-10">
+    <div class="grid gap-5" style="grid-template-columns:340px 1fr" id="layout-grid">
 
-    <!-- LEFT PANEL: CONTROLS -->
-    <aside>
-      <!-- STEP 1: Upload -->
-      <div class="card p-5 mb-4">
-        <div class="section-label">Step 1 — API Definitions</div>
-        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--muted);margin:0 auto 8px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <div class="text-sm font-semibold" style="color:var(--text)">Upload JSON File</div>
-          <div class="text-xs mt-1" style="color:var(--muted)">or drag & drop here</div>
-          <input type="file" id="file-input" accept=".json" class="hidden" onchange="handleFileUpload(event)"/>
-        </div>
-        <div id="file-status" class="hidden mt-3 text-xs font-mono flex items-center gap-2" style="color:#22c55e">
-          <svg width="13" height="13" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 0 0-1.414 0L8 12.586 4.707 9.293a1 1 0 0 0-1.414 1.414l4 4a1 1 0 0 0 1.414 0l8-8a1 1 0 0 0 0-1.414z"/></svg>
-          <span id="file-status-text"></span>
-        </div>
-        <div class="mt-3 flex gap-2">
-          <button class="btn btn-ghost btn-sm flex-1" onclick="loadSample()">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Load Sample & Run Demo
-          </button>
-          <button class="btn btn-ghost btn-sm" onclick="toggleSchemaPreview()" id="schema-preview-btn" title="View expected JSON format">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            Format
-          </button>
-        </div>
-        <!-- Inline schema preview -->
-        <div id="schema-preview" class="hidden mt-3 rounded-lg overflow-hidden" style="border:1px solid var(--border)">
-          <div class="flex items-center justify-between px-3 py-2" style="background:var(--bg);border-bottom:1px solid var(--border)">
-            <span class="text-xs font-bold" style="color:var(--muted)">Expected JSON Format</span>
-            <button onclick="toggleSchemaPreview()" style="color:var(--muted);background:none;border:none;cursor:pointer;font-size:14px;line-height:1">✕</button>
+      <!-- LEFT PANEL: CONTROLS -->
+      <aside>
+        <!-- STEP 1: Upload -->
+        <div class="card p-5 mb-4">
+          <div class="section-label">Step 1 — API Definitions</div>
+          <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()"
+            ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+              style="color:var(--muted);margin:0 auto 8px">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <div class="text-sm font-semibold" style="color:var(--text)">Upload JSON File</div>
+            <div class="text-xs mt-1" style="color:var(--muted)">or drag & drop here</div>
+            <input type="file" id="file-input" accept=".json" class="hidden" onchange="handleFileUpload(event)" />
           </div>
-          <pre class="text-xs p-3 overflow-x-auto" style="font-family:'DM Mono',monospace;color:var(--text);background:var(--bg);line-height:1.7;margin:0">[
+          <div id="file-status" class="hidden mt-3 text-xs font-mono flex items-center gap-2" style="color:#22c55e">
+            <svg width="13" height="13" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                d="M16.707 5.293a1 1 0 0 0-1.414 0L8 12.586 4.707 9.293a1 1 0 0 0-1.414 1.414l4 4a1 1 0 0 0 1.414 0l8-8a1 1 0 0 0 0-1.414z" />
+            </svg>
+            <span id="file-status-text"></span>
+          </div>
+          <div class="mt-3 flex gap-2">
+            <button class="btn btn-ghost btn-sm flex-1" onclick="loadSample()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+              Load Demo
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="downloadSampleJSON()" title="Download sample JSON file">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              .json
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="toggleSchemaPreview()" id="schema-preview-btn"
+              title="View expected JSON format">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </button>
+          </div>
+          <!-- Inline schema preview -->
+          <div id="schema-preview" class="hidden mt-3 rounded-lg overflow-hidden"
+            style="border:1px solid var(--border)">
+            <div class="flex items-center justify-between px-3 py-2"
+              style="background:var(--bg);border-bottom:1px solid var(--border)">
+              <span class="text-xs font-bold" style="color:var(--muted)">Expected JSON Format</span>
+              <button onclick="toggleSchemaPreview()"
+                style="color:var(--muted);background:none;border:none;cursor:pointer;font-size:14px;line-height:1">✕</button>
+            </div>
+            <pre class="text-xs p-3 overflow-x-auto"
+              style="font-family:'DM Mono',monospace;color:var(--text);background:var(--bg);line-height:1.7;margin:0">[
   {
     <span style="color:#3b82f6">"name"</span>: <span style="color:#22c55e">"GetUserProfile"</span>,
     <span style="color:#3b82f6">"url"</span>:  <span style="color:#22c55e">"https://api.{env}.co/{client}/users"</span>
@@ -290,434 +817,507 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
     <span style="color:#3b82f6">"url"</span>:  <span style="color:#22c55e">"https://api.{env}.co/{client}/orders"</span>
   }
 ]</pre>
-          <div class="px-3 py-2" style="background:var(--bg);border-top:1px solid var(--border)">
-            <div class="text-xs" style="color:var(--muted)">
-              <span style="color:#f97316;font-weight:700">{env}</span> → replaced with your environment &nbsp;·&nbsp;
-              <span style="color:#f97316;font-weight:700">{client}</span> → replaced with selected client
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- STEP 2: Client -->
-      <div class="card p-5 mb-4">
-        <div class="section-label">Step 2 — Client</div>
-        <!-- Option A -->
-        <div class="mb-3">
-          <div class="text-xs font-semibold mb-2" style="color:var(--muted)">Option A — Fetch from API</div>
-          <div class="flex gap-2">
-            <input type="text" id="client-api-url" class="inp flex-1" placeholder="Client API URL…" style="font-size:.78rem"/>
-            <button class="btn btn-primary btn-sm" onclick="fetchClients()" id="fetch-clients-btn">Fetch</button>
-          </div>
-          <select id="client-dropdown" class="inp mt-2 hidden" style="cursor:pointer">
-            <option value="">Select client…</option>
-          </select>
-        </div>
-        <div class="divider" style="margin:12px 0"><span class="text-xs px-3" style="color:var(--muted);background:var(--surface);position:relative;top:-9px;left:50%;transform:translateX(-50%);display:inline-block">OR</span></div>
-        <!-- Option B -->
-        <div>
-          <div class="text-xs font-semibold mb-2" style="color:var(--muted)">Option B — Manual Entry</div>
-          <input type="text" id="client-manual" class="inp" placeholder="Enter client name…"/>
-        </div>
-      </div>
-
-      <!-- STEP 3: Environment -->
-      <div class="card p-5 mb-4">
-        <div class="section-label">Step 3 — Environment</div>
-        <div class="flex gap-2 flex-wrap">
-          <button class="btn btn-ghost btn-sm env-btn" onclick="selectEnv(this,'dev')">dev</button>
-          <button class="btn btn-ghost btn-sm env-btn" onclick="selectEnv(this,'staging')">staging</button>
-          <button class="btn btn-ghost btn-sm env-btn" onclick="selectEnv(this,'prod')">prod</button>
-        </div>
-        <input type="text" id="env-custom" class="inp mt-3" placeholder="or type custom env…" oninput="clearEnvBtn()"/>
-      </div>
-
-      <!-- STEP 4: Run -->
-      <div class="card p-5 mb-4">
-        <div class="section-label">Step 4 — Execute</div>
-        <div class="flex flex-col gap-2">
-          <button class="btn btn-primary w-full" id="run-btn" onclick="runAll()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Run All APIs
-          </button>
-          <button class="btn btn-ghost btn-sm w-full hidden" id="retry-btn" onclick="retryFailed()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.06"/></svg>
-            Retry Failed
-          </button>
-          <button class="btn btn-ghost btn-sm w-full hidden" id="stop-btn" onclick="stopExecution()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
-            Stop
-          </button>
-        </div>
-        <!-- thin inline echo of global bar -->
-        <div id="progress-wrap" class="hidden mt-3">
-          <div class="flex justify-between items-center mb-1">
-            <span id="progress-label" class="text-xs font-mono" style="color:var(--muted)">Initialising…</span>
-            <span id="progress-pct" class="text-xs font-bold font-mono" style="color:var(--accent)">0%</span>
-          </div>
-          <div class="progress-track" style="height:3px"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-        </div>
-      </div>
-
-      <!-- Concurrency setting -->
-      <div class="card p-4">
-        <div class="section-label">Concurrency</div>
-        <div class="flex items-center gap-3">
-          <input type="range" id="concurrency" min="1" max="10" value="5" class="flex-1" style="accent-color:var(--accent)" oninput="document.getElementById('concurrency-val').textContent=this.value"/>
-          <span id="concurrency-val" class="badge badge-blue">5</span>
-        </div>
-        <div class="text-xs mt-1" style="color:var(--muted)">Parallel requests at a time</div>
-      </div>
-    </aside>
-
-    <!-- RIGHT PANEL: RESULTS -->
-    <section>
-      <!-- Summary Cards -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5" id="summary-row">
-        <div class="card p-4 flex flex-col gap-1">
-          <div class="text-xs font-semibold" style="color:var(--muted)">Total APIs</div>
-          <div class="text-2xl font-black" id="s-total" style="color:var(--text)">—</div>
-        </div>
-        <div class="card p-4 flex flex-col gap-1">
-          <div class="text-xs font-semibold" style="color:#22c55e">Passed</div>
-          <div class="text-2xl font-black" id="s-pass" style="color:#22c55e">—</div>
-        </div>
-        <div class="card p-4 flex flex-col gap-1">
-          <div class="text-xs font-semibold" style="color:#ef4444">Failed</div>
-          <div class="text-2xl font-black" id="s-fail" style="color:#ef4444">—</div>
-        </div>
-        <div class="card p-4 flex flex-col gap-1">
-          <div class="text-xs font-semibold" style="color:var(--muted)">Avg. Time</div>
-          <div class="text-2xl font-black" id="s-avg" style="color:var(--text)">—</div>
-        </div>
-      </div>
-
-      <!-- Health Score + Filters -->
-      <div class="card p-5 mb-5 hidden" id="health-card">
-        <div class="flex items-center justify-between flex-wrap gap-4">
-          <!-- Score -->
-          <div class="flex items-center gap-5">
-            <div class="relative" style="width:72px;height:72px">
-              <svg width="72" height="72" viewBox="0 0 72 72">
-                <circle class="health-track" cx="36" cy="36" r="28"/>
-                <circle class="health-fill" id="health-arc" cx="36" cy="36" r="28"
-                  stroke-dasharray="175.93" stroke-dashoffset="175.93"/>
-              </svg>
-              <div class="absolute inset-0 flex items-center justify-center">
-                <span id="health-pct" class="text-lg font-black score-excellent">0%</span>
+            <div class="px-3 py-2" style="background:var(--bg);border-top:1px solid var(--border)">
+              <div class="text-xs" style="color:var(--muted)">
+                <span style="color:#f97316;font-weight:700">{env}</span> → replaced with your environment &nbsp;·&nbsp;
+                <span style="color:#f97316;font-weight:700">{client}</span> → replaced with selected client
               </div>
             </div>
-            <div>
-              <div class="text-xs font-semibold mb-1" style="color:var(--muted)">Health Score</div>
-              <div id="health-label" class="text-sm font-bold">—</div>
-              <div id="health-sub" class="text-xs mt-0.5" style="color:var(--muted)"></div>
+          </div>
+        </div>
+
+        <!-- STEP 2: Client -->
+        <div class="card p-5 mb-4">
+          <div class="section-label">Step 2 — Client</div>
+          <!-- Option A -->
+          <div class="mb-3">
+            <div class="text-xs font-semibold mb-2" style="color:var(--muted)">Option A — Fetch from API</div>
+            <div class="flex gap-2">
+              <input type="text" id="client-api-url" class="inp flex-1" placeholder="Client API URL…"
+                style="font-size:.78rem" />
+              <button class="btn btn-primary btn-sm" onclick="fetchClients()" id="fetch-clients-btn">Fetch</button>
+            </div>
+            <div class="text-xs mt-1" style="color:var(--muted)">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                style="display:inline;vertical-align:middle;margin-right:3px">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              CORS issues auto-retried via proxy fallback
+            </div>
+            <select id="client-dropdown" class="inp mt-2 hidden" style="cursor:pointer">
+              <option value="">Select client…</option>
+            </select>
+          </div>
+          <div class="divider" style="margin:12px 0"><span class="text-xs px-3"
+              style="color:var(--muted);background:var(--surface);position:relative;top:-9px;left:50%;transform:translateX(-50%);display:inline-block">OR</span>
+          </div>
+          <!-- Option B -->
+          <div>
+            <div class="text-xs font-semibold mb-2" style="color:var(--muted)">Option B — Manual Entry</div>
+            <input type="text" id="client-manual" class="inp" placeholder="Enter client name…" />
+          </div>
+        </div>
+
+        <!-- STEP 3: Environment -->
+        <div class="card p-5 mb-4">
+          <div class="section-label">Step 3 — Environment</div>
+          <div class="flex gap-2 flex-wrap">
+            <button class="btn btn-ghost btn-sm env-btn" onclick="selectEnv(this,'dev')">dev</button>
+            <button class="btn btn-ghost btn-sm env-btn" onclick="selectEnv(this,'staging')">staging</button>
+            <button class="btn btn-ghost btn-sm env-btn" onclick="selectEnv(this,'prod')">prod</button>
+          </div>
+          <input type="text" id="env-custom" class="inp mt-3" placeholder="or type custom env…"
+            oninput="clearEnvBtn()" />
+        </div>
+
+        <!-- STEP 4: Run -->
+        <div class="card p-5 mb-4">
+          <div class="section-label">Step 4 — Execute</div>
+          <div class="flex flex-col gap-2">
+            <button class="btn btn-primary w-full" id="run-btn" onclick="runAll()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="5 3 19 12 5 21 5 3" />
+              </svg>
+              Run All APIs
+            </button>
+            <button class="btn btn-ghost btn-sm w-full hidden" id="retry-btn" onclick="retryFailed()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="1 4 1 10 7 10" />
+                <path d="M3.51 15a9 9 0 1 0 .49-3.06" />
+              </svg>
+              Retry Failed
+            </button>
+            <button class="btn btn-ghost btn-sm w-full hidden" id="stop-btn" onclick="stopExecution()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="6" width="12" height="12" rx="2" />
+              </svg>
+              Stop
+            </button>
+          </div>
+          <!-- thin inline echo of global bar -->
+          <div id="progress-wrap" class="hidden mt-3">
+            <div class="flex justify-between items-center mb-1">
+              <span id="progress-label" class="text-xs font-mono" style="color:var(--muted)">Initialising…</span>
+              <span id="progress-pct" class="text-xs font-bold font-mono" style="color:var(--accent)">0%</span>
+            </div>
+            <div class="progress-track" style="height:3px">
+              <div class="progress-fill" id="progress-fill" style="width:0%"></div>
             </div>
           </div>
-          <!-- Filters -->
-          <div class="flex items-center gap-1 flex-wrap" id="filter-bar">
-            <button class="filter-tab active" onclick="setFilter('all',this)">All</button>
-            <button class="filter-tab" onclick="setFilter('pass',this)">✅ Passed</button>
-            <button class="filter-tab" onclick="setFilter('warn',this)">🟠 Logical</button>
-            <button class="filter-tab" onclick="setFilter('fail',this)">❌ Failed</button>
-            <button class="filter-tab" onclick="setFilter('slow',this)">🐢 Slow</button>
+        </div>
+
+        <!-- Concurrency setting -->
+        <div class="card p-4">
+          <div class="section-label">Concurrency</div>
+          <div class="flex items-center gap-3">
+            <input type="range" id="concurrency" min="1" max="10" value="5" class="flex-1"
+              style="accent-color:var(--accent)"
+              oninput="document.getElementById('concurrency-val').textContent=this.value" />
+            <span id="concurrency-val" class="badge badge-blue">5</span>
+          </div>
+          <div class="text-xs mt-1" style="color:var(--muted)">Parallel requests at a time</div>
+        </div>
+      </aside>
+
+      <!-- RIGHT PANEL: RESULTS -->
+      <section>
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5" id="summary-row">
+          <div class="card p-4 flex flex-col gap-1">
+            <div class="text-xs font-semibold" style="color:var(--muted)">Total APIs</div>
+            <div class="text-2xl font-black" id="s-total" style="color:var(--text)">—</div>
+          </div>
+          <div class="card p-4 flex flex-col gap-1">
+            <div class="text-xs font-semibold" style="color:#22c55e">Passed</div>
+            <div class="text-2xl font-black" id="s-pass" style="color:#22c55e">—</div>
+          </div>
+          <div class="card p-4 flex flex-col gap-1">
+            <div class="text-xs font-semibold" style="color:#ef4444">Failed</div>
+            <div class="text-2xl font-black" id="s-fail" style="color:#ef4444">—</div>
+          </div>
+          <div class="card p-4 flex flex-col gap-1">
+            <div class="text-xs font-semibold" style="color:var(--muted)">Avg. Time</div>
+            <div class="text-2xl font-black" id="s-avg" style="color:var(--text)">—</div>
           </div>
         </div>
-      </div>
 
-      <!-- API Cards -->
-      <div id="results-container">
-        <!-- Empty state -->
-        <div id="empty-state" class="card p-12 text-center">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="color:var(--muted);margin:0 auto 12px"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-          <div class="text-sm font-semibold mb-1" style="color:var(--text)">No results yet</div>
-          <div class="text-xs" style="color:var(--muted)">Upload your API definitions and run the suite to see results here.</div>
+        <!-- Health Score + Filters -->
+        <div class="card p-5 mb-5 hidden" id="health-card">
+          <div class="flex items-center justify-between flex-wrap gap-4">
+            <!-- Score -->
+            <div class="flex items-center gap-5">
+              <div class="relative" style="width:72px;height:72px">
+                <svg width="72" height="72" viewBox="0 0 72 72">
+                  <circle class="health-track" cx="36" cy="36" r="28" />
+                  <circle class="health-fill" id="health-arc" cx="36" cy="36" r="28" stroke-dasharray="175.93"
+                    stroke-dashoffset="175.93" />
+                </svg>
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <span id="health-pct" class="text-lg font-black score-excellent">0%</span>
+                </div>
+              </div>
+              <div>
+                <div class="text-xs font-semibold mb-1" style="color:var(--muted)">Health Score</div>
+                <div id="health-label" class="text-sm font-bold">—</div>
+                <div id="health-sub" class="text-xs mt-0.5" style="color:var(--muted)"></div>
+              </div>
+            </div>
+            <!-- Filters + expand controls -->
+            <div class="flex items-center gap-1 flex-wrap" id="filter-bar">
+              <button class="filter-tab active" onclick="setFilter('all',this)">All</button>
+              <button class="filter-tab" onclick="setFilter('pass',this)">✅ Passed</button>
+              <button class="filter-tab" onclick="setFilter('warn',this)">🟠 Logical</button>
+              <button class="filter-tab" onclick="setFilter('fail',this)">❌ Failed</button>
+              <button class="filter-tab" onclick="setFilter('slow',this)">🐢 Slow</button>
+              <div style="width:1px;height:18px;background:var(--border);margin:0 4px"></div>
+              <button class="filter-tab" onclick="expandAll()" title="Expand all responses" style="font-size:.72rem">⬇
+                Expand All</button>
+              <button class="filter-tab" onclick="collapseAll()" title="Collapse all responses"
+                style="font-size:.72rem">⬆ Collapse All</button>
+            </div>
+          </div>
         </div>
-        <div id="api-cards-grid" class="grid gap-3"></div>
-      </div>
-    </section>
-  </div>
-</main>
 
-<script>
-// ─── STATE ───────────────────────────────────────────────
-let state = {
-  apis: [],
-  results: {},
-  running: false,
-  stopped: false,
-  filter: 'all',
-  theme: 'dark',
-  slowThreshold: 2000,
-};
+        <!-- API Cards -->
+        <div id="results-container">
+          <!-- Empty state -->
+          <div id="empty-state" class="card p-12 text-center">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"
+              style="color:var(--muted);margin:0 auto 12px">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+            </svg>
+            <div class="text-sm font-semibold mb-1" style="color:var(--text)">No results yet</div>
+            <div class="text-xs" style="color:var(--muted)">Upload your API definitions and run the suite to see results
+              here.</div>
+          </div>
+          <div id="api-cards-grid" class="grid gap-3"></div>
+        </div>
+      </section>
+    </div>
+  </main>
 
-// ─── THEME ───────────────────────────────────────────────
-function toggleTheme(el) {
-  state.theme = el.checked ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', state.theme);
-  document.getElementById('theme-label').textContent = state.theme === 'dark' ? 'Dark' : 'Light';
-  document.querySelector('meta[name="theme-color"]').content = state.theme === 'dark' ? '#0c0d12' : '#f6f7fb';
-}
+  <script>
+    // ─── STATE ───────────────────────────────────────────────
+    let state = {
+      apis: [],
+      results: {},
+      running: false,
+      stopped: false,
+      filter: 'all',
+      theme: 'dark',
+      slowThreshold: 2000,
+    };
 
-// ─── TOAST ───────────────────────────────────────────────
-function toast(msg, type='info') {
-  const c = document.getElementById('toast');
-  const t = document.createElement('div');
-  t.className = `toast-item toast-${type}`;
-  const icon = type==='success'?'✓':type==='error'?'✕':'ℹ';
-  t.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
-  c.appendChild(t);
-  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300); }, 3200);
-}
+    // ─── THEME ───────────────────────────────────────────────
+    function toggleTheme(el) {
+      state.theme = el.checked ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', state.theme);
+      document.getElementById('theme-label').textContent = state.theme === 'dark' ? 'Dark' : 'Light';
+      document.querySelector('meta[name="theme-color"]').content = state.theme === 'dark' ? '#0c0d12' : '#f6f7fb';
+    }
 
-// ─── FILE UPLOAD ──────────────────────────────────────────
-function handleDragOver(e){ e.preventDefault(); document.getElementById('upload-zone').classList.add('drag'); }
-function handleDragLeave(e){ document.getElementById('upload-zone').classList.remove('drag'); }
-function handleDrop(e) {
-  e.preventDefault();
-  document.getElementById('upload-zone').classList.remove('drag');
-  const f = e.dataTransfer.files[0];
-  if(f) processFile(f);
-}
-function handleFileUpload(e){ const f=e.target.files[0]; if(f) processFile(f); }
+    // ─── TOAST ───────────────────────────────────────────────
+    function toast(msg, type = 'info') {
+      const c = document.getElementById('toast');
+      const t = document.createElement('div');
+      t.className = `toast-item toast-${type}`;
+      const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+      t.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
+      c.appendChild(t);
+      setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity .3s'; setTimeout(() => t.remove(), 300); }, 3200);
+    }
 
-function processFile(file) {
-  if(!file.name.endsWith('.json')){ toast('Please upload a valid .json file','error'); return; }
-  const r = new FileReader();
-  r.onload = (e) => {
-    try {
-      const data = JSON.parse(e.target.result);
-      validateAndSetAPIs(data, file.name);
-    } catch(ex) { toast('Invalid JSON — parse error: '+ex.message,'error'); }
-  };
-  r.readAsText(file);
-}
+    // ─── FILE UPLOAD ──────────────────────────────────────────
+    function handleDragOver(e) { e.preventDefault(); document.getElementById('upload-zone').classList.add('drag'); }
+    function handleDragLeave(e) { document.getElementById('upload-zone').classList.remove('drag'); }
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('upload-zone').classList.remove('drag');
+      const f = e.dataTransfer.files[0];
+      if (f) processFile(f);
+    }
+    function handleFileUpload(e) { const f = e.target.files[0]; if (f) processFile(f); }
 
-function validateAndSetAPIs(data, fname='') {
-  if(!Array.isArray(data)){ toast('JSON must be an array of API objects','error'); return; }
-  const errors=[];
-  data.forEach((d,i)=>{ if(!d.name) errors.push(`Item ${i}: missing "name"`); if(!d.url) errors.push(`Item ${i}: missing "url"`); });
-  if(errors.length){ toast('Validation errors: '+errors.slice(0,3).join('; '),'error'); return; }
-  state.apis = data;
-  state.results = {};
-  const el = document.getElementById('file-status');
-  el.classList.remove('hidden');
-  document.getElementById('file-status-text').textContent = `${data.length} APIs loaded${fname?' — '+fname:''}`;
-  renderEmptyCards();
-  toast(`${data.length} APIs loaded successfully`,'success');
-}
+    function processFile(file) {
+      if (!file.name.endsWith('.json')) { toast('Please upload a valid .json file', 'error'); return; }
+      const r = new FileReader();
+      r.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          validateAndSetAPIs(data, file.name);
+        } catch (ex) { toast('Invalid JSON — parse error: ' + ex.message, 'error'); }
+      };
+      r.readAsText(file);
+    }
 
-function loadSample() {
-  const sample = [
-    {"name":"GetUserProfile","url":"https://jsonplaceholder.typicode.com/users/1"},
-    {"name":"ListPosts","url":"https://jsonplaceholder.typicode.com/posts?userId=1"},
-    {"name":"GetTodos","url":"https://jsonplaceholder.typicode.com/todos/1"},
-    {"name":"FetchAlbums","url":"https://jsonplaceholder.typicode.com/albums?userId=1"},
-    {"name":"GetPhotos","url":"https://jsonplaceholder.typicode.com/photos/1"},
-    {"name":"GetComments","url":"https://jsonplaceholder.typicode.com/comments?postId=1"},
-    {"name":"BrokenEndpoint","url":"https://httpstat.us/404"},
-    {"name":"ServerError","url":"https://httpstat.us/500"},
-    {"name":"SlowAPI","url":"https://httpstat.us/200?sleep=2500"},
-  ];
-  validateAndSetAPIs(sample, 'sample.json');
-}
+    function validateAndSetAPIs(data, fname = '') {
+      if (!Array.isArray(data)) { toast('JSON must be an array of API objects', 'error'); return; }
+      const errors = [];
+      data.forEach((d, i) => { if (!d.name) errors.push(`Item ${i}: missing "name"`); if (!d.url) errors.push(`Item ${i}: missing "url"`); });
+      if (errors.length) { toast('Validation errors: ' + errors.slice(0, 3).join('; '), 'error'); return; }
+      state.apis = data;
+      state.results = {};
+      const el = document.getElementById('file-status');
+      el.classList.remove('hidden');
+      document.getElementById('file-status-text').textContent = `${data.length} APIs loaded${fname ? ' — ' + fname : ''}`;
+      renderEmptyCards();
+      toast(`${data.length} APIs loaded successfully`, 'success');
+    }
 
-// ─── CLIENT FETCH ─────────────────────────────────────────
+    function loadSample() {
+      const sample = [
+        { "name": "GetUserProfile", "url": "https://jsonplaceholder.typicode.com/users/1" },
+        { "name": "ListPosts", "url": "https://jsonplaceholder.typicode.com/posts?userId=1" },
+        { "name": "GetTodos", "url": "https://jsonplaceholder.typicode.com/todos/1" },
+        { "name": "FetchAlbums", "url": "https://jsonplaceholder.typicode.com/albums?userId=1" },
+        { "name": "GetPhotos", "url": "https://jsonplaceholder.typicode.com/photos/1" },
+        { "name": "GetComments", "url": "https://jsonplaceholder.typicode.com/comments?postId=1" },
+        { "name": "BrokenEndpoint", "url": "https://httpstat.us/404" },
+        { "name": "ServerError", "url": "https://httpstat.us/500" },
+        { "name": "SlowAPI", "url": "https://httpstat.us/200?sleep=2500" },
+      ];
+      validateAndSetAPIs(sample, 'sample.json');
+    }
 
-// Recursively collect all values of the key "id" from any JSON structure
-function extractIds(data) {
-  const ids = new Set();
-  function walk(node) {
-    if (Array.isArray(node)) { node.forEach(walk); }
-    else if (node && typeof node === 'object') {
-      Object.entries(node).forEach(([k, v]) => {
-        if (k === 'id' && v !== null && v !== undefined && String(v).trim() !== '') {
-          ids.add(String(v).trim());
+    function downloadSampleJSON() {
+      const sample = [
+        { "name": "GetUserProfile", "url": "https://api.{env}.example.com/{client}/users/profile" },
+        { "name": "ListProducts", "url": "https://api.{env}.example.com/{client}/products" },
+        { "name": "GetOrderHistory", "url": "https://api.{env}.example.com/{client}/orders" },
+        { "name": "CheckInventory", "url": "https://api.{env}.example.com/{client}/inventory/status" },
+        { "name": "GetAnalytics", "url": "https://api.{env}.example.com/{client}/analytics/summary" },
+        { "name": "FetchNotifications", "url": "https://api.{env}.example.com/{client}/notifications" },
+        { "name": "ValidateSession", "url": "https://api.{env}.example.com/{client}/auth/session" },
+        { "name": "GetSettings", "url": "https://api.{env}.example.com/{client}/settings" }
+      ];
+      const blob = new Blob([JSON.stringify(sample, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'sample-apis.json'; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 3000);
+      toast('sample-apis.json downloaded', 'success');
+    }
+
+    // ─── CLIENT FETCH ─────────────────────────────────────────
+
+    // Recursively collect all values of the key "id" from any JSON structure
+    function extractIds(data) {
+      const ids = new Set();
+      function walk(node) {
+        if (Array.isArray(node)) { node.forEach(walk); }
+        else if (node && typeof node === 'object') {
+          Object.entries(node).forEach(([k, v]) => {
+            if (k === 'id' && v !== null && v !== undefined && String(v).trim() !== '') {
+              ids.add(String(v).trim());
+            }
+            walk(v);
+          });
         }
-        walk(v);
-      });
+      }
+      walk(data);
+      return [...ids];
     }
-  }
-  walk(data);
-  return [...ids];
-}
 
-async function fetchClients() {
-  const url = document.getElementById('client-api-url').value.trim();
-  if(!url){ toast('Enter a Client API URL first','error'); return; }
-  const btn = document.getElementById('fetch-clients-btn');
-  btn.disabled=true; btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin .7s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Loading…';
-  try {
-    const r = await fetchWithTimeout(url, {}, 8000);
-    const data = await r.json();
+    // CORS proxy fallback list (public proxies for development use)
+    const CORS_PROXIES = [
+      '', // direct first
+      'https://corsproxy.io/?',
+      'https://api.allorigins.win/raw?url=',
+    ];
 
-    // Extract all "id" fields recursively
-    const ids = extractIds(data);
-
-    if(!ids.length){ toast('No "id" fields found in response','error'); return; }
-
-    const sel = document.getElementById('client-dropdown');
-    sel.innerHTML = `<option value="">Select client… (${ids.length} found)</option>`;
-    ids.forEach(id => {
-      const opt = document.createElement('option');
-      opt.value = id; opt.textContent = id;
-      sel.appendChild(opt);
-    });
-    sel.classList.remove('hidden');
-    toast(`${ids.length} client IDs extracted`,'success');
-  } catch(ex){ toast('Failed to fetch clients: '+ex.message,'error'); }
-  finally{ btn.disabled=false; btn.textContent='Fetch'; }
-}
-
-// ─── ENV SELECTION ────────────────────────────────────────
-function selectEnv(el, val) {
-  document.querySelectorAll('.env-btn').forEach(b=>b.classList.remove('btn-primary'));
-  el.classList.add('btn-primary');
-  document.getElementById('env-custom').value = val;
-}
-function clearEnvBtn() {
-  document.querySelectorAll('.env-btn').forEach(b=>b.classList.remove('btn-primary'));
-}
-
-// ─── PLACEHOLDER REPLACEMENT ──────────────────────────────
-function resolveURL(url, client, env) {
-  return url.replace(/{client}/g, encodeURIComponent(client)).replace(/{env}/g, encodeURIComponent(env));
-}
-
-// ─── HELPERS ──────────────────────────────────────────────
-function fetchWithTimeout(url, opts={}, ms=10000) {
-  const ctrl = new AbortController();
-  const id = setTimeout(()=>ctrl.abort(), ms);
-  return fetch(url, {...opts, signal:ctrl.signal}).finally(()=>clearTimeout(id));
-}
-
-function getClient() {
-  const manual = document.getElementById('client-manual').value.trim();
-  if(manual) return manual;
-  const dd = document.getElementById('client-dropdown').value;
-  return dd || '';
-}
-function getEnv() { return document.getElementById('env-custom').value.trim(); }
-
-// ─── EXECUTION ENGINE ─────────────────────────────────────
-async function runAll() {
-  if(!state.apis.length){ toast('Upload API definitions first','error'); return; }
-  const client = getClient(); const env = getEnv();
-  if(!client){ toast('Select or enter a client name','error'); return; }
-  if(!env){ toast('Select or enter an environment','error'); return; }
-  state.running=true; state.stopped=false; state.results={};
-
-  showGlobalProgress(state.apis.length);
-  setStatus('running','Running…');
-  document.getElementById('run-btn').disabled=true;
-  document.getElementById('stop-btn').classList.remove('hidden');
-  document.getElementById('retry-btn').classList.add('hidden');
-  document.getElementById('progress-wrap').classList.remove('hidden');
-  document.getElementById('empty-state').classList.add('hidden');
-  document.getElementById('health-card').classList.remove('hidden');
-  document.getElementById('export-btn').classList.add('hidden');
-
-  // Clear results
-  const grid = document.getElementById('api-cards-grid');
-  grid.innerHTML='';
-  state.apis.forEach(api=>{ grid.appendChild(createCardSkeleton(api.name)); });
-
-  const concurrency = parseInt(document.getElementById('concurrency').value);
-  let done=0; const total=state.apis.length;
-  updateProgress(0,total);
-
-  // Parallel with limit
-  const queue = [...state.apis.map((api,i)=>({api,i}))];
-  const workers = [];
-
-  async function worker() {
-    while(queue.length && !state.stopped) {
-      const {api, i} = queue.shift();
-      const url = resolveURL(api.url, client, env);
-      document.getElementById('gp-current').textContent = '▶ ' + api.name;
-      document.getElementById('gp-label').textContent = 'Calling ' + api.name + '…';
-      const result = await callAPI(api.name, url, i);
-      state.results[api.name] = result;
-      done++;
-      updateProgress(done, total, api.name);
-      renderCard(api, result, i);
+    async function fetchWithCORSFallback(url, timeoutMs = 10000) {
+      for (let i = 0; i < CORS_PROXIES.length; i++) {
+        const proxyUrl = CORS_PROXIES[i] + (CORS_PROXIES[i] ? encodeURIComponent(url) : url);
+        try {
+          const r = await fetchWithTimeout(proxyUrl, {}, timeoutMs);
+          if (r.ok || r.status < 500) return r;
+        } catch (e) {
+          if (i === CORS_PROXIES.length - 1) throw e;
+          // try next proxy
+        }
+      }
+      throw new Error('All CORS proxy attempts failed');
     }
-  }
 
-  for(let w=0; w<Math.min(concurrency, total); w++) workers.push(worker());
-  await Promise.all(workers);
+    async function fetchClients() {
+      const url = document.getElementById('client-api-url').value.trim();
+      if (!url) { toast('Enter a Client API URL first', 'error'); return; }
+      const btn = document.getElementById('fetch-clients-btn');
+      btn.disabled = true; btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin .7s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Loading…';
+      try {
+        const r = await fetchWithCORSFallback(url, 10000);
+        const data = await r.json();
 
-  state.running=false;
-  document.getElementById('run-btn').disabled=false;
-  document.getElementById('stop-btn').classList.add('hidden');
-  if(hasFailures()) document.getElementById('retry-btn').classList.remove('hidden');
-  document.getElementById('export-btn').classList.remove('hidden');
-  setStatus(state.stopped?'grey':'green', state.stopped?'Stopped':'Complete');
-  updateSummary();
-  updateHealthScore();
-  toast(state.stopped?'Execution stopped':'All APIs tested','success');
-}
+        // Extract all "id" fields recursively
+        const ids = extractIds(data);
 
-async function callAPI(name, url, idx) {
-  const start = performance.now();
-  try {
-    const r = await fetchWithTimeout(url, {
-      method:'GET',
-      headers:{'Accept':'application/json','Content-Type':'application/json'}
-    }, 12000);
-    const elapsed = Math.round(performance.now()-start);
-    let body=''; let parsed=null;
-    try { body = await r.text(); parsed = JSON.parse(body); } catch(e){}
-    const status = classifyStatus(r.status, parsed);
-    return { status, statusCode:r.status, time:elapsed, body:body||'(empty)', parsed };
-  } catch(ex) {
-    const elapsed = Math.round(performance.now()-start);
-    const isTimeout = ex.name==='AbortError';
-    return { status:'fail', statusCode: isTimeout?'TIMEOUT':'NET_ERR', time:elapsed, body:ex.message, parsed:null };
-  }
-}
+        if (!ids.length) { toast('No "id" fields found in response', 'error'); return; }
 
-function classifyStatus(code, parsed) {
-  if(code>=400) return 'fail';
-  if(code===200 || code===201) {
-    if(parsed && typeof parsed === 'object') {
-      if(parsed.errors||parsed.error||parsed.exception) return 'warn';
+        const sel = document.getElementById('client-dropdown');
+        sel.innerHTML = `<option value="">Select client… (${ids.length} found)</option>`;
+        ids.forEach(id => {
+          const opt = document.createElement('option');
+          opt.value = id; opt.textContent = id;
+          sel.appendChild(opt);
+        });
+        sel.classList.remove('hidden');
+        toast(`${ids.length} client IDs extracted`, 'success');
+      } catch (ex) { toast('Failed to fetch clients: ' + ex.message, 'error'); }
+      finally { btn.disabled = false; btn.textContent = 'Fetch'; }
     }
-    return 'pass';
-  }
-  return code>=200&&code<300?'pass':'fail';
-}
 
-function stopExecution() { state.stopped=true; toast('Stopping after current batch…','info'); }
+    // ─── ENV SELECTION ────────────────────────────────────────
+    function selectEnv(el, val) {
+      document.querySelectorAll('.env-btn').forEach(b => b.classList.remove('btn-primary'));
+      el.classList.add('btn-primary');
+      document.getElementById('env-custom').value = val;
+    }
+    function clearEnvBtn() {
+      document.querySelectorAll('.env-btn').forEach(b => b.classList.remove('btn-primary'));
+    }
 
-async function retryFailed() {
-  const failed = state.apis.filter(a=>state.results[a.name]?.status==='fail');
-  if(!failed.length){ toast('No failed APIs to retry','info'); return; }
-  const client=getClient(); const env=getEnv();
-  if(!client||!env){ toast('Client and environment required','error'); return; }
-  state.stopped=false;
-  document.getElementById('retry-btn').classList.add('hidden');
-  document.getElementById('stop-btn').classList.remove('hidden');
-  toast(`Retrying ${failed.length} failed APIs…`,'info');
-  for(const api of failed) {
-    if(state.stopped) break;
-    const url=resolveURL(api.url,client,env);
-    const idx=state.apis.indexOf(api);
-    const result=await callAPI(api.name,url,idx);
-    state.results[api.name]=result;
-    renderCard(api,result,idx);
-  }
-  document.getElementById('stop-btn').classList.add('hidden');
-  if(hasFailures()) document.getElementById('retry-btn').classList.remove('hidden');
-  updateSummary(); updateHealthScore();
-  toast('Retry complete','success');
-}
+    // ─── PLACEHOLDER REPLACEMENT ──────────────────────────────
+    function resolveURL(url, client, env) {
+      return url.replace(/{client}/g, encodeURIComponent(client)).replace(/{env}/g, encodeURIComponent(env));
+    }
 
-// ─── UI RENDERING ─────────────────────────────────────────
-function createCardSkeleton(name) {
-  const div = document.createElement('div');
-  div.className='card p-4 api-card';
-  div.id=`card-${sanitize(name)}`;
-  div.innerHTML=`
+    // ─── HELPERS ──────────────────────────────────────────────
+    function fetchWithTimeout(url, opts = {}, ms = 10000) {
+      const ctrl = new AbortController();
+      const id = setTimeout(() => ctrl.abort(), ms);
+      return fetch(url, { ...opts, signal: ctrl.signal }).finally(() => clearTimeout(id));
+    }
+
+    function getClient() {
+      const manual = document.getElementById('client-manual').value.trim();
+      if (manual) return manual;
+      const dd = document.getElementById('client-dropdown').value;
+      return dd || '';
+    }
+    function getEnv() { return document.getElementById('env-custom').value.trim(); }
+
+    // ─── EXECUTION ENGINE ─────────────────────────────────────
+    async function runAll() {
+      if (!state.apis.length) { toast('Upload API definitions first', 'error'); return; }
+      const client = getClient(); const env = getEnv();
+      if (!client) { toast('Select or enter a client name', 'error'); return; }
+      if (!env) { toast('Select or enter an environment', 'error'); return; }
+      state.running = true; state.stopped = false; state.results = {};
+
+      showGlobalProgress(state.apis.length);
+      setStatus('running', 'Running…');
+      document.getElementById('run-btn').disabled = true;
+      document.getElementById('stop-btn').classList.remove('hidden');
+      document.getElementById('retry-btn').classList.add('hidden');
+      document.getElementById('progress-wrap').classList.remove('hidden');
+      document.getElementById('empty-state').classList.add('hidden');
+      document.getElementById('health-card').classList.remove('hidden');
+      document.getElementById('export-btn').classList.add('hidden');
+
+      // Clear results
+      const grid = document.getElementById('api-cards-grid');
+      grid.innerHTML = '';
+      state.apis.forEach(api => { grid.appendChild(createCardSkeleton(api.name)); });
+
+      const concurrency = parseInt(document.getElementById('concurrency').value);
+      let done = 0; const total = state.apis.length;
+      updateProgress(0, total);
+
+      // Parallel with limit
+      const queue = [...state.apis.map((api, i) => ({ api, i }))];
+      const workers = [];
+
+      async function worker() {
+        while (queue.length && !state.stopped) {
+          const { api, i } = queue.shift();
+          const url = resolveURL(api.url, client, env);
+          document.getElementById('gp-current').textContent = '▶ ' + api.name;
+          document.getElementById('gp-label').textContent = 'Calling ' + api.name + '…';
+          const result = await callAPI(api.name, url, i);
+          state.results[api.name] = result;
+          done++;
+          updateProgress(done, total, api.name);
+          renderCard(api, result, i);
+        }
+      }
+
+      for (let w = 0; w < Math.min(concurrency, total); w++) workers.push(worker());
+      await Promise.all(workers);
+
+      state.running = false;
+      document.getElementById('run-btn').disabled = false;
+      document.getElementById('stop-btn').classList.add('hidden');
+      if (hasFailures()) document.getElementById('retry-btn').classList.remove('hidden');
+      document.getElementById('export-btn').classList.remove('hidden');
+      setStatus(state.stopped ? 'grey' : 'green', state.stopped ? 'Stopped' : 'Complete');
+      updateSummary();
+      updateHealthScore();
+      toast(state.stopped ? 'Execution stopped' : 'All APIs tested', 'success');
+    }
+
+    async function callAPI(name, url, idx) {
+      const start = performance.now();
+      try {
+        const r = await fetchWithTimeout(url, {
+          method: 'GET',
+          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
+        }, 12000);
+        const elapsed = Math.round(performance.now() - start);
+        let body = ''; let parsed = null;
+        try { body = await r.text(); parsed = JSON.parse(body); } catch (e) { }
+        const status = classifyStatus(r.status, parsed);
+        return { status, statusCode: r.status, time: elapsed, body: body || '(empty)', parsed };
+      } catch (ex) {
+        const elapsed = Math.round(performance.now() - start);
+        const isTimeout = ex.name === 'AbortError';
+        return { status: 'fail', statusCode: isTimeout ? 'TIMEOUT' : 'NET_ERR', time: elapsed, body: ex.message, parsed: null };
+      }
+    }
+
+    function classifyStatus(code, parsed) {
+      if (code >= 400) return 'fail';
+      if (code === 200 || code === 201) {
+        if (parsed && typeof parsed === 'object') {
+          if (parsed.errors || parsed.error || parsed.exception) return 'warn';
+        }
+        return 'pass';
+      }
+      return code >= 200 && code < 300 ? 'pass' : 'fail';
+    }
+
+    function stopExecution() { state.stopped = true; toast('Stopping after current batch…', 'info'); }
+
+    async function retryFailed() {
+      const failed = state.apis.filter(a => state.results[a.name]?.status === 'fail');
+      if (!failed.length) { toast('No failed APIs to retry', 'info'); return; }
+      const client = getClient(); const env = getEnv();
+      if (!client || !env) { toast('Client and environment required', 'error'); return; }
+      state.stopped = false;
+      document.getElementById('retry-btn').classList.add('hidden');
+      document.getElementById('stop-btn').classList.remove('hidden');
+      toast(`Retrying ${failed.length} failed APIs…`, 'info');
+      for (const api of failed) {
+        if (state.stopped) break;
+        const url = resolveURL(api.url, client, env);
+        const idx = state.apis.indexOf(api);
+        const result = await callAPI(api.name, url, idx);
+        state.results[api.name] = result;
+        renderCard(api, result, idx);
+      }
+      document.getElementById('stop-btn').classList.add('hidden');
+      if (hasFailures()) document.getElementById('retry-btn').classList.remove('hidden');
+      updateSummary(); updateHealthScore();
+      toast('Retry complete', 'success');
+    }
+
+    // ─── UI RENDERING ─────────────────────────────────────────
+    function createCardSkeleton(name) {
+      const div = document.createElement('div');
+      div.className = 'card p-4 api-card';
+      div.id = `card-${sanitize(name)}`;
+      div.innerHTML = `
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
         <span class="dot dot-grey running" id="dot-${sanitize(name)}"></span>
@@ -728,306 +1328,376 @@ function createCardSkeleton(name) {
         <div class="shimmer h-5 w-12 rounded"></div>
       </div>
     </div>`;
-  return div;
-}
+      return div;
+    }
 
-function renderCard(api, result, idx) {
-  const id = sanitize(api.name);
-  const existing = document.getElementById(`card-${id}`);
-  const dot = result.status==='pass'?'dot-green':result.status==='warn'?'dot-orange':'dot-red';
-  const badge = result.status==='pass'?'badge-green':result.status==='warn'?'badge-orange':'badge-red';
-  const label = result.status==='pass'?'SUCCESS':result.status==='warn'?'LOGICAL FAIL':'FAILURE';
-  const timeColor = result.time>state.slowThreshold?'#f97316':result.time>1000?'#eab308':'#22c55e';
-  const prettyJSON = result.parsed ? JSON.stringify(result.parsed, null, 2) : result.body;
-  const card = document.createElement('div');
-  card.className='card p-4 api-card';
-  card.id=`card-${id}`;
-  card.dataset.status=result.status;
-  card.dataset.time=result.time;
-  card.innerHTML=`
-    <div class="flex items-start justify-between gap-3">
+    function syntaxHighlightJSON(json) {
+      if (typeof json !== 'string') json = JSON.stringify(json, null, 2);
+      return json
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/("(\u[a-zA-Z0-9]{4}|\[^u]|[^\"])*"(\s*:)?|(true|false|null)|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (m) {
+          if (/^"/.test(m)) {
+            if (/:$/.test(m)) return '<span class="jk">' + m + '</span>';
+            return '<span class="js">' + m + '</span>';
+          }
+          if (/true|false/.test(m)) return '<span class="jb">' + m + '</span>';
+          if (/null/.test(m)) return '<span class="jnull">' + m + '</span>';
+          return '<span class="jn">' + m + '</span>';
+        });
+    }
+
+    function renderCard(api, result, idx) {
+      const id = sanitize(api.name);
+      const existing = document.getElementById(`card-${id}`);
+      const dot = result.status === 'pass' ? 'dot-green' : result.status === 'warn' ? 'dot-orange' : 'dot-red';
+      const badge = result.status === 'pass' ? 'badge-green' : result.status === 'warn' ? 'badge-orange' : 'badge-red';
+      const label = result.status === 'pass' ? 'SUCCESS' : result.status === 'warn' ? 'LOGICAL FAIL' : 'FAILURE';
+      const timeColor = result.time > state.slowThreshold ? '#f97316' : result.time > 1000 ? '#eab308' : '#22c55e';
+
+      // Build highlighted JSON or plain error text
+      let jsonDisplay = '';
+      if (result.parsed) {
+        jsonDisplay = syntaxHighlightJSON(result.parsed);
+      } else if (result.body) {
+        jsonDisplay = '<span class="jerr">' + escHtml(result.body) + '</span>';
+      } else {
+        jsonDisplay = '<span class="jnull">(empty response)</span>';
+      }
+
+      const byteSize = result.body ? new Blob([result.body]).size : 0;
+      const sizeLabel = byteSize > 1024 ? (byteSize / 1024).toFixed(1) + 'KB' : byteSize + 'B';
+      const bodyType = result.parsed ? 'JSON' : 'TEXT';
+
+      const card = document.createElement('div');
+      card.className = 'card px-4 py-3 api-card';
+      card.id = `card-${id}`;
+      card.dataset.status = result.status;
+      card.dataset.time = result.time;
+      card.innerHTML = `
+    <div class="flex items-center justify-between gap-3">
       <div class="flex items-center gap-3 min-w-0">
-        <span class="dot ${dot}" style="flex-shrink:0;margin-top:2px"></span>
-        <div class="min-w-0">
-          <div class="font-semibold text-sm truncate" style="color:var(--text)">${escHtml(api.name)}</div>
-          <div class="text-xs font-mono truncate" style="color:var(--muted);max-width:280px">${escHtml(api.url)}</div>
-        </div>
+        <span class="dot ${dot}" style="flex-shrink:0"></span>
+        <span class="font-semibold text-sm truncate" style="color:var(--text)">${escHtml(api.name)}</span>
       </div>
       <div class="flex items-center gap-2 flex-shrink-0">
         <span class="badge ${badge}">${label}</span>
         <span class="badge badge-blue font-mono">${result.statusCode}</span>
-        <span class="text-xs font-mono font-semibold" style="color:${timeColor}">${result.time}ms</span>
-        <button onclick="toggleJSON('${id}')" class="btn btn-ghost btn-sm" style="padding:4px 8px;font-size:.72rem">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"/></svg>
+        <span class="text-xs font-mono font-bold" style="color:${timeColor}">${result.time}ms</span>
+        <button onclick="toggleViewer('${id}',this)" class="btn btn-ghost btn-sm" style="padding:4px 9px;font-size:.72rem;gap:4px" title="Toggle response">
+          <svg id="chevron-${id}" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
       </div>
     </div>
-    <div id="json-${id}" class="json-collapse">${escHtml(prettyJSON)}</div>`;
-  if(existing) { existing.replaceWith(card); }
-  else { document.getElementById('api-cards-grid').appendChild(card); }
-  applyFilter();
-}
-
-function renderEmptyCards() {
-  const grid = document.getElementById('api-cards-grid');
-  grid.innerHTML='';
-  document.getElementById('empty-state').classList.add('hidden');
-  state.apis.forEach((api,i)=>{
-    const card = document.createElement('div');
-    card.className='card p-4 api-card';
-    card.dataset.status='pending';
-    card.innerHTML=`
-      <div class="flex items-center gap-3">
-        <span class="dot dot-grey"></span>
-        <div>
-          <div class="font-semibold text-sm">${escHtml(api.name)}</div>
-          <div class="text-xs font-mono" style="color:var(--muted)">${escHtml(api.url)}</div>
+    <div id="viewer-${id}" class="json-viewer">
+      <div class="json-viewer-toolbar">
+        <div style="display:flex;gap:10px;align-items:center">
+          <span style="color:var(--accent);font-weight:700">${bodyType}</span>
+          <span>${sizeLabel}</span>
+          <span style="color:var(--border)">|</span>
+          <span style="color:var(--muted);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(api.url)}">${escHtml(api.url)}</span>
         </div>
+        <button class="json-viewer-copy" onclick="copyResponse('${id}')">Copy</button>
+      </div>
+      <pre class="json-body">${jsonDisplay}</pre>
+    </div>`;
+      if (existing) { existing.replaceWith(card); }
+      else { document.getElementById('api-cards-grid').appendChild(card); }
+      // store raw body for copy
+      card._rawBody = result.body || '';
+      applyFilter();
+    }
+
+    function renderEmptyCards() {
+      const grid = document.getElementById('api-cards-grid');
+      grid.innerHTML = '';
+      document.getElementById('empty-state').classList.add('hidden');
+      state.apis.forEach((api, i) => {
+        const card = document.createElement('div');
+        card.className = 'card px-4 py-3 api-card';
+        card.dataset.status = 'pending';
+        card.innerHTML = `
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="dot dot-grey" style="flex-shrink:0"></span>
+          <span class="font-semibold text-sm truncate" style="color:var(--text)">${escHtml(api.name)}</span>
+        </div>
+        <span class="text-xs font-mono" style="color:var(--muted);flex-shrink:0">Pending</span>
       </div>`;
-    grid.appendChild(card);
-  });
-}
+        grid.appendChild(card);
+      });
+    }
 
-function toggleJSON(id) {
-  const el = document.getElementById(`json-${id}`);
-  el.classList.toggle('open');
-}
+    function toggleViewer(id, btn) {
+      const el = document.getElementById('viewer-' + id);
+      const chev = document.getElementById('chevron-' + id);
+      const open = el.classList.toggle('open');
+      if (chev) chev.style.transform = open ? 'rotate(180deg)' : '';
+    }
 
-// ─── FILTER ───────────────────────────────────────────────
-function setFilter(f, btn) {
-  state.filter=f;
-  document.querySelectorAll('.filter-tab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  applyFilter();
-}
+    function copyResponse(id) {
+      const card = document.getElementById('card-' + id);
+      const text = card ? (card._rawBody || '') : '';
+      if (!text) { toast('Nothing to copy', 'error'); return; }
+      navigator.clipboard.writeText(text).then(() => toast('Copied to clipboard', 'success')).catch(() => {
+        const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('Copied', 'success');
+      });
+    }
 
-function applyFilter() {
-  document.querySelectorAll('#api-cards-grid .card').forEach(card=>{
-    const s=card.dataset.status; const t=parseInt(card.dataset.time||0);
-    let show=true;
-    if(state.filter==='pass') show=s==='pass';
-    else if(state.filter==='warn') show=s==='warn';
-    else if(state.filter==='fail') show=s==='fail';
-    else if(state.filter==='slow') show=t>state.slowThreshold;
-    card.style.display=show?'':'none';
-  });
-}
+    function expandAll() {
+      let count = 0;
+      document.querySelectorAll('.json-viewer').forEach(el => {
+        if (!el.classList.contains('open')) { el.classList.add('open'); count++; }
+        const id = el.id.replace('viewer-', '');
+        const chev = document.getElementById('chevron-' + id);
+        if (chev) chev.style.transform = 'rotate(180deg)';
+      });
+      if (!count) toast('All responses already expanded', 'info');
+    }
 
-// ─── SUMMARY ──────────────────────────────────────────────
-function updateSummary() {
-  const vals = Object.values(state.results);
-  const total=vals.length, pass=vals.filter(r=>r.status==='pass').length;
-  const warn=vals.filter(r=>r.status==='warn').length;
-  const fail=vals.filter(r=>r.status==='fail').length;
-  const times=vals.filter(r=>typeof r.time==='number').map(r=>r.time);
-  const avg=times.length?Math.round(times.reduce((a,b)=>a+b,0)/times.length):0;
-  document.getElementById('s-total').textContent=total||'—';
-  document.getElementById('s-pass').textContent=pass||'—';
-  document.getElementById('s-fail').textContent=(fail+warn)||'—';
-  document.getElementById('s-avg').textContent=avg?avg+'ms':'—';
-}
+    function collapseAll() {
+      document.querySelectorAll('.json-viewer').forEach(el => {
+        el.classList.remove('open');
+        const id = el.id.replace('viewer-', '');
+        const chev = document.getElementById('chevron-' + id);
+        if (chev) chev.style.transform = '';
+      });
+    }
 
-function updateHealthScore() {
-  const vals = Object.values(state.results);
-  if(!vals.length) return;
-  const pass=vals.filter(r=>r.status==='pass').length;
-  const warn=vals.filter(r=>r.status==='warn').length;
-  const total=vals.length;
-  // Weighted: pass=1, warn=0.5, fail=0
-  const score = Math.round(((pass + warn*0.5) / total)*100);
-  document.getElementById('health-pct').textContent=score+'%';
-  const arc = document.getElementById('health-arc');
-  const circ=175.93;
-  arc.style.strokeDashoffset = circ - (circ*(score/100));
-  // Color
-  const cls = score>=90?'score-excellent':score>=70?'score-good':score>=50?'score-warn':'score-bad';
-  document.getElementById('health-pct').className='text-lg font-black '+cls;
-  const strokeColor = score>=90?'#22c55e':score>=70?'#84cc16':score>=50?'#f97316':'#ef4444';
-  arc.style.stroke=strokeColor;
-  const label = score>=90?'Excellent':score>=70?'Healthy':score>=50?'Degraded':'Critical';
-  document.getElementById('health-label').textContent=label;
-  document.getElementById('health-label').style.color=strokeColor;
-  document.getElementById('health-sub').textContent=`${pass}/${total} fully operational`;
-}
+    // ─── FILTER ───────────────────────────────────────────────
+    function setFilter(f, btn) {
+      state.filter = f;
+      document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      applyFilter();
+    }
 
-function updateProgress(done, total, currentName) {
-  const pct = Math.round((done/total)*100);
+    function applyFilter() {
+      document.querySelectorAll('#api-cards-grid .card').forEach(card => {
+        const s = card.dataset.status; const t = parseInt(card.dataset.time || 0);
+        let show = true;
+        if (state.filter === 'pass') show = s === 'pass';
+        else if (state.filter === 'warn') show = s === 'warn';
+        else if (state.filter === 'fail') show = s === 'fail';
+        else if (state.filter === 'slow') show = t > state.slowThreshold;
+        card.style.display = show ? '' : 'none';
+      });
+    }
 
-  // ── inline mini bar ──
-  document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('progress-pct').textContent = pct + '%';
-  document.getElementById('progress-label').textContent = `${done}/${total} done`;
+    // ─── SUMMARY ──────────────────────────────────────────────
+    function updateSummary() {
+      const vals = Object.values(state.results);
+      const total = vals.length, pass = vals.filter(r => r.status === 'pass').length;
+      const warn = vals.filter(r => r.status === 'warn').length;
+      const fail = vals.filter(r => r.status === 'fail').length;
+      const times = vals.filter(r => typeof r.time === 'number').map(r => r.time);
+      const avg = times.length ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : 0;
+      document.getElementById('s-total').textContent = total || '—';
+      document.getElementById('s-pass').textContent = pass || '—';
+      document.getElementById('s-fail').textContent = (fail + warn) || '—';
+      document.getElementById('s-avg').textContent = avg ? avg + 'ms' : '—';
+    }
 
-  // ── global sticky bar ──
-  const vals = Object.values(state.results);
-  const pass = vals.filter(r=>r.status==='pass').length;
-  const warn = vals.filter(r=>r.status==='warn').length;
-  const fail = vals.filter(r=>r.status==='fail').length;
+    function updateHealthScore() {
+      const vals = Object.values(state.results);
+      if (!vals.length) return;
+      const pass = vals.filter(r => r.status === 'pass').length;
+      const warn = vals.filter(r => r.status === 'warn').length;
+      const total = vals.length;
+      // Weighted: pass=1, warn=0.5, fail=0
+      const score = Math.round(((pass + warn * 0.5) / total) * 100);
+      document.getElementById('health-pct').textContent = score + '%';
+      const arc = document.getElementById('health-arc');
+      const circ = 175.93;
+      arc.style.strokeDashoffset = circ - (circ * (score / 100));
+      // Color
+      const cls = score >= 90 ? 'score-excellent' : score >= 70 ? 'score-good' : score >= 50 ? 'score-warn' : 'score-bad';
+      document.getElementById('health-pct').className = 'text-lg font-black ' + cls;
+      const strokeColor = score >= 90 ? '#22c55e' : score >= 70 ? '#84cc16' : score >= 50 ? '#f97316' : '#ef4444';
+      arc.style.stroke = strokeColor;
+      const label = score >= 90 ? 'Excellent' : score >= 70 ? 'Healthy' : score >= 50 ? 'Degraded' : 'Critical';
+      document.getElementById('health-label').textContent = label;
+      document.getElementById('health-label').style.color = strokeColor;
+      document.getElementById('health-sub').textContent = `${pass}/${total} fully operational`;
+    }
 
-  const passPct  = (pass / total) * 100;
-  const warnPct  = (warn / total) * 100;
-  const failPct  = (fail / total) * 100;
+    function updateProgress(done, total, currentName) {
+      const pct = Math.round((done / total) * 100);
 
-  document.getElementById('gp-pass-fill').style.width = passPct + '%';
-  document.getElementById('gp-warn-fill').style.width = warnPct + '%';
-  document.getElementById('gp-warn-fill').style.left  = passPct + '%';
-  document.getElementById('gp-fail-fill').style.width = failPct + '%';
-  document.getElementById('gp-fail-fill').style.left  = (passPct + warnPct) + '%';
+      // ── inline mini bar ──
+      document.getElementById('progress-fill').style.width = pct + '%';
+      document.getElementById('progress-pct').textContent = pct + '%';
+      document.getElementById('progress-label').textContent = `${done}/${total} done`;
 
-  document.getElementById('gp-pct-badge').textContent = pct + '%';
-  document.getElementById('gp-fraction').textContent  = `${done} / ${total}`;
-  document.getElementById('gp-pass-count').textContent = `${pass} passed`;
-  document.getElementById('gp-fail-count').textContent = `${fail+warn} failed`;
+      // ── global sticky bar ──
+      const vals = Object.values(state.results);
+      const pass = vals.filter(r => r.status === 'pass').length;
+      const warn = vals.filter(r => r.status === 'warn').length;
+      const fail = vals.filter(r => r.status === 'fail').length;
 
-  if (currentName) {
-    document.getElementById('gp-current').textContent = '▶ ' + currentName;
-  }
+      const passPct = (pass / total) * 100;
+      const warnPct = (warn / total) * 100;
+      const failPct = (fail / total) * 100;
 
-  if (pct === 100) {
-    document.getElementById('gp-icon').textContent = '✅';
-    document.getElementById('gp-label').textContent = 'All APIs tested';
-    document.getElementById('gp-current').textContent = '';
-    document.getElementById('gp-shimmer').style.display = 'none';
-    // fade out after 3s
-    setTimeout(() => {
+      document.getElementById('gp-pass-fill').style.width = passPct + '%';
+      document.getElementById('gp-warn-fill').style.width = warnPct + '%';
+      document.getElementById('gp-warn-fill').style.left = passPct + '%';
+      document.getElementById('gp-fail-fill').style.width = failPct + '%';
+      document.getElementById('gp-fail-fill').style.left = (passPct + warnPct) + '%';
+
+      document.getElementById('gp-pct-badge').textContent = pct + '%';
+      document.getElementById('gp-fraction').textContent = `${done} / ${total}`;
+      document.getElementById('gp-pass-count').textContent = `${pass} passed`;
+      document.getElementById('gp-fail-count').textContent = `${fail + warn} failed`;
+
+      if (currentName) {
+        document.getElementById('gp-current').textContent = '▶ ' + currentName;
+      }
+
+      if (pct === 100) {
+        document.getElementById('gp-icon').textContent = '✅';
+        document.getElementById('gp-label').textContent = 'All APIs tested';
+        document.getElementById('gp-current').textContent = '';
+        document.getElementById('gp-shimmer').style.display = 'none';
+        // fade out after 3s
+        setTimeout(() => {
+          const bar = document.getElementById('global-progress-bar');
+          bar.style.opacity = '0';
+          setTimeout(() => bar.classList.remove('visible'), 400);
+        }, 3000);
+      }
+    }
+
+    function showGlobalProgress(total) {
+      const bar = document.getElementById('global-progress-bar');
+      bar.style.opacity = '1';
+      bar.classList.add('visible');
+      document.getElementById('gp-icon').textContent = '⚡';
+      document.getElementById('gp-label').textContent = `Running ${total} APIs…`;
+      document.getElementById('gp-pct-badge').textContent = '0%';
+      document.getElementById('gp-fraction').textContent = `0 / ${total}`;
+      document.getElementById('gp-pass-count').textContent = '0 passed';
+      document.getElementById('gp-fail-count').textContent = '0 failed';
+      document.getElementById('gp-current').textContent = '';
+      document.getElementById('gp-pass-fill').style.width = '0%';
+      document.getElementById('gp-warn-fill').style.width = '0%';
+      document.getElementById('gp-fail-fill').style.width = '0%';
+      document.getElementById('gp-shimmer').style.display = 'block';
+    }
+
+    function hideGlobalProgress() {
       const bar = document.getElementById('global-progress-bar');
       bar.style.opacity = '0';
       setTimeout(() => bar.classList.remove('visible'), 400);
-    }, 3000);
-  }
-}
+    }
 
-function showGlobalProgress(total) {
-  const bar = document.getElementById('global-progress-bar');
-  bar.style.opacity = '1';
-  bar.classList.add('visible');
-  document.getElementById('gp-icon').textContent = '⚡';
-  document.getElementById('gp-label').textContent = `Running ${total} APIs…`;
-  document.getElementById('gp-pct-badge').textContent = '0%';
-  document.getElementById('gp-fraction').textContent = `0 / ${total}`;
-  document.getElementById('gp-pass-count').textContent = '0 passed';
-  document.getElementById('gp-fail-count').textContent = '0 failed';
-  document.getElementById('gp-current').textContent = '';
-  document.getElementById('gp-pass-fill').style.width = '0%';
-  document.getElementById('gp-warn-fill').style.width = '0%';
-  document.getElementById('gp-fail-fill').style.width = '0%';
-  document.getElementById('gp-shimmer').style.display = 'block';
-}
+    function setStatus(type, text) {
+      document.getElementById('status-text').textContent = text;
+      const dot = document.getElementById('status-dot');
+      dot.className = 'dot ' + (type === 'running' ? 'dot-blue' : type === 'green' ? 'dot-green' : type === 'grey' ? 'dot-grey' : 'dot-red');
+      if (type === 'running') dot.style.background = '#3b82f6', dot.style.boxShadow = '0 0 6px rgba(59,130,246,.5)';
+    }
 
-function hideGlobalProgress() {
-  const bar = document.getElementById('global-progress-bar');
-  bar.style.opacity = '0';
-  setTimeout(() => bar.classList.remove('visible'), 400);
-}
+    function hasFailures() {
+      return Object.values(state.results).some(r => r.status === 'fail');
+    }
 
-function setStatus(type, text) {
-  document.getElementById('status-text').textContent=text;
-  const dot=document.getElementById('status-dot');
-  dot.className='dot '+(type==='running'?'dot-blue':type==='green'?'dot-green':type==='grey'?'dot-grey':'dot-red');
-  if(type==='running') dot.style.background='#3b82f6',dot.style.boxShadow='0 0 6px rgba(59,130,246,.5)';
-}
+    // ─── PDF REPORT GENERATION ────────────────────────────────
+    function exportPDF() {
+      const vals = Object.values(state.results);
+      if (!vals.length) { toast('No results to export', 'error'); return; }
 
-function hasFailures() {
-  return Object.values(state.results).some(r=>r.status==='fail');
-}
+      const client = getClient() || 'N/A';
+      const env = getEnv() || 'N/A';
+      const total = vals.length;
+      const pass = vals.filter(r => r.status === 'pass').length;
+      const warn = vals.filter(r => r.status === 'warn').length;
+      const fail = vals.filter(r => r.status === 'fail').length;
+      const times = state.apis.map(a => state.results[a.name]?.time).filter(Boolean);
+      const avg = times.length ? Math.round(times.reduce((a, b) => a + b, 0) / times.length) : 0;
+      const minT = times.length ? Math.min(...times) : 0;
+      const maxT = times.length ? Math.max(...times) : 0;
+      const score = Math.round(((pass + warn * 0.5) / total) * 100);
+      const scoreLabel = score >= 90 ? 'Excellent' : score >= 70 ? 'Healthy' : score >= 50 ? 'Degraded' : 'Critical';
+      const genTime = new Date().toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'medium' });
+      const failAPIs = state.apis.filter(a => state.results[a.name]?.status === 'fail');
+      const warnAPIs = state.apis.filter(a => state.results[a.name]?.status === 'warn');
+      const slowAPIs = state.apis.filter(a => (state.results[a.name]?.time || 0) > 2000);
 
-// ─── PDF REPORT GENERATION ────────────────────────────────
-function exportPDF() {
-  const vals = Object.values(state.results);
-  if (!vals.length) { toast('No results to export', 'error'); return; }
+      /* ── Bar chart SVG ── */
+      const cH = 80, cW = 520;
+      const bW = Math.max(4, Math.floor((cW - 20) / total) - 3);
+      const mxT = maxT || 1;
+      const bars = state.apis.map((api, i) => {
+        const r = state.results[api.name]; if (!r) return '';
+        const h = Math.max(3, Math.round((r.time / mxT) * cH));
+        const x = 10 + i * (bW + 3), y = cH - h;
+        const c = r.status === 'pass' ? (r.time > 2000 ? '#f97316' : '#22c55e') : r.status === 'warn' ? '#f97316' : '#ef4444';
+        return '<rect x="' + x + '" y="' + y + '" width="' + bW + '" height="' + h + '" rx="2" fill="' + c + '" opacity="0.85"/>';
+      }).join('');
+      const chartSVG = '<svg width="' + cW + '" height="' + (cH + 4) + '" viewBox="0 0 ' + cW + ' ' + (cH + 4) + '" xmlns="http://www.w3.org/2000/svg" style="display:block">' + bars + '<line x1="10" y1="' + cH + '" x2="' + (cW - 10) + '" y2="' + cH + '" stroke="#e5e7eb" stroke-width="1"/></svg>';
 
-  const client  = getClient() || 'N/A';
-  const env     = getEnv()    || 'N/A';
-  const total   = vals.length;
-  const pass    = vals.filter(r => r.status === 'pass').length;
-  const warn    = vals.filter(r => r.status === 'warn').length;
-  const fail    = vals.filter(r => r.status === 'fail').length;
-  const times   = state.apis.map(a => state.results[a.name]?.time).filter(Boolean);
-  const avg     = times.length ? Math.round(times.reduce((a,b)=>a+b,0)/times.length) : 0;
-  const minT    = times.length ? Math.min(...times) : 0;
-  const maxT    = times.length ? Math.max(...times) : 0;
-  const score   = Math.round(((pass + warn * 0.5) / total) * 100);
-  const scoreLabel = score>=90?'Excellent':score>=70?'Healthy':score>=50?'Degraded':'Critical';
-  const genTime = new Date().toLocaleString('en-US',{dateStyle:'long',timeStyle:'medium'});
-  const failAPIs = state.apis.filter(a => state.results[a.name]?.status === 'fail');
-  const warnAPIs = state.apis.filter(a => state.results[a.name]?.status === 'warn');
-  const slowAPIs = state.apis.filter(a => (state.results[a.name]?.time||0) > 2000);
+      /* ── Per-API table rows ── */
+      let apiRows = '';
+      state.apis.forEach((api, i) => {
+        const r = state.results[api.name]; if (!r) return;
+        const sc = r.status === 'pass' ? '#16a34a' : r.status === 'warn' ? '#ea580c' : '#dc2626';
+        const sb = r.status === 'pass' ? '#f0fdf4' : r.status === 'warn' ? '#fff7ed' : '#fef2f2';
+        const sl = r.status === 'pass' ? '&check; SUCCESS' : r.status === 'warn' ? '&#9888; LOGICAL FAIL' : '&#10005; FAILURE';
+        const rb = i % 2 === 0 ? '#ffffff' : '#f9fafb';
+        const tc = r.time > 2000 ? '#ea580c' : r.time > 1000 ? '#ca8a04' : '#16a34a';
+        const body = r.body ? (r.body.length > 280 ? r.body.slice(0, 280) + '...' : r.body) : '(empty)';
+        apiRows += '<tr style="background:' + rb + '">'
+          + '<td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;color:#6b7280;font-size:11px">' + (i + 1) + '</td>'
+          + '<td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;font-size:12px">' + escHtml(api.name) + '</td>'
+          + '<td style="padding:8px 10px;border-bottom:1px solid #f1f5f9"><span style="background:' + sb + ';color:' + sc + ';font-weight:700;font-size:10px;padding:2px 7px;border-radius:99px;white-space:nowrap">' + sl + '</span></td>'
+          + '<td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-family:monospace;font-size:11px">' + escHtml(String(r.statusCode)) + '</td>'
+          + '<td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-family:monospace;font-size:11px;color:' + tc + ';font-weight:700">' + r.time + 'ms</td>'
+          + '<td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-family:monospace;font-size:9px;color:#6b7280;word-break:break-all;max-width:180px">' + escHtml(body) + '</td>'
+          + '</tr>';
+      });
 
-  /* ── Bar chart SVG ── */
-  const cH=80, cW=520;
-  const bW = Math.max(4, Math.floor((cW-20)/total)-3);
-  const mxT = maxT || 1;
-  const bars = state.apis.map((api,i) => {
-    const r = state.results[api.name]; if(!r) return '';
-    const h = Math.max(3, Math.round((r.time/mxT)*cH));
-    const x = 10 + i*(bW+3), y = cH-h;
-    const c = r.status==='pass'?(r.time>2000?'#f97316':'#22c55e'):r.status==='warn'?'#f97316':'#ef4444';
-    return '<rect x="'+x+'" y="'+y+'" width="'+bW+'" height="'+h+'" rx="2" fill="'+c+'" opacity="0.85"/>';
-  }).join('');
-  const chartSVG = '<svg width="'+cW+'" height="'+(cH+4)+'" viewBox="0 0 '+cW+' '+(cH+4)+'" xmlns="http://www.w3.org/2000/svg" style="display:block">'+bars+'<line x1="10" y1="'+cH+'" x2="'+(cW-10)+'" y2="'+cH+'" stroke="#e5e7eb" stroke-width="1"/></svg>';
+      /* ── Issues section ── */
+      let issuesSec = '';
+      if (failAPIs.length || warnAPIs.length) {
+        const all = [...failAPIs, ...warnAPIs];
+        issuesSec = '<div style="margin-top:28px"><h2 style="font-size:14px;font-weight:800;color:#dc2626;margin-bottom:10px;border-left:3px solid #dc2626;padding-left:9px">Issues Requiring Attention (' + all.length + ')</h2>'
+          + all.map(api => {
+            const r = state.results[api.name];
+            const isW = r.status === 'warn';
+            const bc = isW ? '#fff7ed' : '#fef2f2', hc = isW ? '#ea580c' : '#dc2626';
+            const lb = isW ? 'Logical Failure' : 'HTTP Failure';
+            const body = r.body ? (r.body.length > 350 ? r.body.slice(0, 350) + '...' : r.body) : '';
+            return '<div style="background:' + bc + ';border:1px solid ' + hc + '44;border-radius:8px;padding:12px 14px;margin-bottom:8px">'
+              + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">'
+              + '<span style="font-weight:800;font-size:12px">' + escHtml(api.name) + '</span>'
+              + '<span style="color:' + hc + ';font-size:10px;font-weight:700;background:' + hc + '18;padding:2px 7px;border-radius:99px">' + lb + '</span></div>'
+              + '<div style="font-family:monospace;font-size:10px;color:#6b7280;margin-bottom:3px">' + escHtml(api.url) + '</div>'
+              + '<div style="font-size:11px;color:#374151"><strong>HTTP:</strong> ' + r.statusCode + ' &nbsp;|&nbsp; <strong>Time:</strong> ' + r.time + 'ms</div>'
+              + (body ? '<div style="margin-top:6px;background:#ffffff99;border-radius:5px;padding:6px;font-family:monospace;font-size:9px;color:#374151;word-break:break-all">' + escHtml(body) + '</div>' : '')
+              + '</div>';
+          }).join('')
+          + '</div>';
+      }
 
-  /* ── Per-API table rows ── */
-  let apiRows = '';
-  state.apis.forEach((api,i) => {
-    const r = state.results[api.name]; if(!r) return;
-    const sc = r.status==='pass'?'#16a34a':r.status==='warn'?'#ea580c':'#dc2626';
-    const sb = r.status==='pass'?'#f0fdf4':r.status==='warn'?'#fff7ed':'#fef2f2';
-    const sl = r.status==='pass'?'&check; SUCCESS':r.status==='warn'?'&#9888; LOGICAL FAIL':'&#10005; FAILURE';
-    const rb = i%2===0?'#ffffff':'#f9fafb';
-    const tc = r.time>2000?'#ea580c':r.time>1000?'#ca8a04':'#16a34a';
-    const body = r.body ? (r.body.length>280 ? r.body.slice(0,280)+'...' : r.body) : '(empty)';
-    apiRows += '<tr style="background:'+rb+'">'
-      +'<td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;color:#6b7280;font-size:11px">'+(i+1)+'</td>'
-      +'<td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-weight:700;font-size:12px">'+escHtml(api.name)+'</td>'
-      +'<td style="padding:8px 10px;border-bottom:1px solid #f1f5f9"><span style="background:'+sb+';color:'+sc+';font-weight:700;font-size:10px;padding:2px 7px;border-radius:99px;white-space:nowrap">'+sl+'</span></td>'
-      +'<td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-family:monospace;font-size:11px">'+escHtml(String(r.statusCode))+'</td>'
-      +'<td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-family:monospace;font-size:11px;color:'+tc+';font-weight:700">'+r.time+'ms</td>'
-      +'<td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;font-family:monospace;font-size:9px;color:#6b7280;word-break:break-all;max-width:180px">'+escHtml(body)+'</td>'
-      +'</tr>';
-  });
+      /* ── Slow APIs section ── */
+      let slowSec = '';
+      if (slowAPIs.length) {
+        slowSec = '<div style="margin-top:20px"><h2 style="font-size:14px;font-weight:800;color:#ea580c;margin-bottom:10px;border-left:3px solid #ea580c;padding-left:9px">Slow APIs &mdash; Response &gt; 2s (' + slowAPIs.length + ')</h2>'
+          + '<table style="width:100%;border-collapse:collapse;font-size:11px">'
+          + '<thead><tr style="background:#fff7ed"><th style="padding:7px 10px;text-align:left;color:#9a3412;font-size:10px;font-weight:700">API Name</th><th style="padding:7px 10px;text-align:left;color:#9a3412;font-size:10px;font-weight:700">Response Time</th><th style="padding:7px 10px;text-align:left;color:#9a3412;font-size:10px;font-weight:700">HTTP Code</th><th style="padding:7px 10px;text-align:left;color:#9a3412;font-size:10px;font-weight:700">Status</th></tr></thead><tbody>'
+          + slowAPIs.map(api => {
+            const r = state.results[api.name];
+            const sl = r.status === 'pass' ? 'PASS' : r.status === 'warn' ? 'LOGICAL FAIL' : 'FAIL';
+            return '<tr><td style="padding:7px 10px;border-bottom:1px solid #fed7aa;font-weight:600">' + escHtml(api.name) + '</td><td style="padding:7px 10px;border-bottom:1px solid #fed7aa;font-family:monospace;color:#ea580c;font-weight:700">' + r.time + 'ms</td><td style="padding:7px 10px;border-bottom:1px solid #fed7aa;font-family:monospace">' + r.statusCode + '</td><td style="padding:7px 10px;border-bottom:1px solid #fed7aa;font-size:10px">' + sl + '</td></tr>';
+          }).join('')
+          + '</tbody></table></div>';
+      }
 
-  /* ── Issues section ── */
-  let issuesSec = '';
-  if (failAPIs.length || warnAPIs.length) {
-    const all = [...failAPIs,...warnAPIs];
-    issuesSec = '<div style="margin-top:28px"><h2 style="font-size:14px;font-weight:800;color:#dc2626;margin-bottom:10px;border-left:3px solid #dc2626;padding-left:9px">Issues Requiring Attention ('+all.length+')</h2>'
-      + all.map(api => {
-          const r = state.results[api.name];
-          const isW = r.status==='warn';
-          const bc = isW?'#fff7ed':'#fef2f2', hc = isW?'#ea580c':'#dc2626';
-          const lb = isW?'Logical Failure':'HTTP Failure';
-          const body = r.body?(r.body.length>350?r.body.slice(0,350)+'...':r.body):'';
-          return '<div style="background:'+bc+';border:1px solid '+hc+'44;border-radius:8px;padding:12px 14px;margin-bottom:8px">'
-            +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">'
-            +'<span style="font-weight:800;font-size:12px">'+escHtml(api.name)+'</span>'
-            +'<span style="color:'+hc+';font-size:10px;font-weight:700;background:'+hc+'18;padding:2px 7px;border-radius:99px">'+lb+'</span></div>'
-            +'<div style="font-family:monospace;font-size:10px;color:#6b7280;margin-bottom:3px">'+escHtml(api.url)+'</div>'
-            +'<div style="font-size:11px;color:#374151"><strong>HTTP:</strong> '+r.statusCode+' &nbsp;|&nbsp; <strong>Time:</strong> '+r.time+'ms</div>'
-            +(body?'<div style="margin-top:6px;background:#ffffff99;border-radius:5px;padding:6px;font-family:monospace;font-size:9px;color:#374151;word-break:break-all">'+escHtml(body)+'</div>':'')
-            +'</div>';
-        }).join('')
-      + '</div>';
-  }
+      const scoreArc = 201.06;
+      const scoreOffset = scoreArc - (scoreArc * score / 100);
+      const scoreColor = score >= 90 ? '#16a34a' : score >= 70 ? '#65a30d' : score >= 50 ? '#ea580c' : '#dc2626';
 
-  /* ── Slow APIs section ── */
-  let slowSec = '';
-  if (slowAPIs.length) {
-    slowSec = '<div style="margin-top:20px"><h2 style="font-size:14px;font-weight:800;color:#ea580c;margin-bottom:10px;border-left:3px solid #ea580c;padding-left:9px">Slow APIs &mdash; Response &gt; 2s ('+slowAPIs.length+')</h2>'
-      +'<table style="width:100%;border-collapse:collapse;font-size:11px">'
-      +'<thead><tr style="background:#fff7ed"><th style="padding:7px 10px;text-align:left;color:#9a3412;font-size:10px;font-weight:700">API Name</th><th style="padding:7px 10px;text-align:left;color:#9a3412;font-size:10px;font-weight:700">Response Time</th><th style="padding:7px 10px;text-align:left;color:#9a3412;font-size:10px;font-weight:700">HTTP Code</th><th style="padding:7px 10px;text-align:left;color:#9a3412;font-size:10px;font-weight:700">Status</th></tr></thead><tbody>'
-      + slowAPIs.map(api => {
-          const r = state.results[api.name];
-          const sl = r.status==='pass'?'PASS':r.status==='warn'?'LOGICAL FAIL':'FAIL';
-          return '<tr><td style="padding:7px 10px;border-bottom:1px solid #fed7aa;font-weight:600">'+escHtml(api.name)+'</td><td style="padding:7px 10px;border-bottom:1px solid #fed7aa;font-family:monospace;color:#ea580c;font-weight:700">'+r.time+'ms</td><td style="padding:7px 10px;border-bottom:1px solid #fed7aa;font-family:monospace">'+r.statusCode+'</td><td style="padding:7px 10px;border-bottom:1px solid #fed7aa;font-size:10px">'+sl+'</td></tr>';
-        }).join('')
-      +'</tbody></table></div>';
-  }
-
-  const scoreArc = 201.06;
-  const scoreOffset = scoreArc - (scoreArc * score / 100);
-  const scoreColor = score>=90?'#16a34a':score>=70?'#65a30d':score>=50?'#ea580c':'#dc2626';
-
-  const reportHTML = `<!DOCTYPE html>
+      const reportHTML = `<!DOCTYPE html>
 <html lang="en"><head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>APIPulse Report &mdash; ${escHtml(client)} / ${escHtml(env)}</title>
@@ -1107,7 +1777,7 @@ body{font-family:'Nunito Sans',system-ui,sans-serif;background:#f8fafc;color:#11
     </div>
     <div class="sband-desc">
       <div style="font-size:18px;font-weight:900;margin-bottom:5px">${pass} / ${total} APIs passing</div>
-      <div>${fail} hard failure${fail!==1?'s':''} &nbsp;&middot;&nbsp; ${warn} logical issue${warn!==1?'s':''}</div>
+      <div>${fail} hard failure${fail !== 1 ? 's' : ''} &nbsp;&middot;&nbsp; ${warn} logical issue${warn !== 1 ? 's' : ''}</div>
       <div style="margin-top:3px">Avg response: ${avg}ms &nbsp;&middot;&nbsp; Slowest: ${maxT}ms &nbsp;&middot;&nbsp; Fastest: ${minT}ms</div>
       ${score < 70 ? '<div style="margin-top:8px;background:rgba(239,68,68,.22);border-radius:5px;padding:5px 9px;font-size:11px">&#9888;&#65039; Action required &mdash; review issues below</div>' : ''}
     </div>
@@ -1156,51 +1826,52 @@ body{font-family:'Nunito Sans',system-ui,sans-serif;background:#f8fafc;color:#11
 </div>
 </body></html>`;
 
-  const blob = new Blob([reportHTML], { type: 'text/html;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const fname = ('apipulse-report-' + env + '-' + client + '-' + new Date().toISOString().slice(0,10) + '.html').replace(/[^a-z0-9._-]/gi,'_');
+      const blob = new Blob([reportHTML], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const fname = ('apipulse-report-' + env + '-' + client + '-' + new Date().toISOString().slice(0, 10) + '.html').replace(/[^a-z0-9._-]/gi, '_');
 
-  const win = window.open(url, '_blank');
-  if (win) {
-    toast('Report ready — click "Save as PDF" in print dialog', 'success');
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
-  } else {
-    const a = document.createElement('a');
-    a.href = url; a.download = fname; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 5000);
-    toast('Report downloaded — open in browser then Ctrl+P to save PDF', 'info');
-  }
-}
+      const win = window.open(url, '_blank');
+      if (win) {
+        toast('Report ready — click "Save as PDF" in print dialog', 'success');
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+      } else {
+        const a = document.createElement('a');
+        a.href = url; a.download = fname; a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+        toast('Report downloaded — open in browser then Ctrl+P to save PDF', 'info');
+      }
+    }
 
 
-// ─── UTILS ───────────────────────────────────────────────
-function escHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function sanitize(str){ return str.replace(/[^a-z0-9]/gi,'_').toLowerCase(); }
+    // ─── UTILS ───────────────────────────────────────────────
+    function escHtml(str) { return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+    function sanitize(str) { return str.replace(/[^a-z0-9]/gi, '_').toLowerCase(); }
 
-// ─── SCHEMA PREVIEW TOGGLE ───────────────────────────────
-function toggleSchemaPreview() {
-  const el = document.getElementById('schema-preview');
-  el.classList.toggle('hidden');
-  const btn = document.getElementById('schema-preview-btn');
-  const isOpen = !el.classList.contains('hidden');
-  btn.style.borderColor = isOpen ? 'var(--accent)' : '';
-  btn.style.color = isOpen ? 'var(--accent)' : '';
-}
+    // ─── SCHEMA PREVIEW TOGGLE ───────────────────────────────
+    function toggleSchemaPreview() {
+      const el = document.getElementById('schema-preview');
+      el.classList.toggle('hidden');
+      const btn = document.getElementById('schema-preview-btn');
+      const isOpen = !el.classList.contains('hidden');
+      btn.style.borderColor = isOpen ? 'var(--accent)' : '';
+      btn.style.color = isOpen ? 'var(--accent)' : '';
+    }
 
-// ─── RESPONSIVE LAYOUT ────────────────────────────────────
-function checkLayout() {
-  const grid = document.getElementById('layout-grid');
-  if(window.innerWidth<900) { grid.style.gridTemplateColumns='1fr'; }
-  else { grid.style.gridTemplateColumns='340px 1fr'; }
-}
-window.addEventListener('resize', checkLayout); checkLayout();
+    // ─── RESPONSIVE LAYOUT ────────────────────────────────────
+    function checkLayout() {
+      const grid = document.getElementById('layout-grid');
+      if (window.innerWidth < 900) { grid.style.gridTemplateColumns = '1fr'; }
+      else { grid.style.gridTemplateColumns = '340px 1fr'; }
+    }
+    window.addEventListener('resize', checkLayout); checkLayout();
 
-// ─── SERVICE WORKER ───────────────────────────────────────
-if('serviceWorker' in navigator) {
-  window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('sw.js').then(()=>{}).catch(()=>{});
-  });
-}
-</script>
+    // ─── SERVICE WORKER ───────────────────────────────────────
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').then(() => { }).catch(() => { });
+      });
+    }
+  </script>
 </body>
+
 </html>

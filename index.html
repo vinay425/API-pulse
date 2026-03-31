@@ -100,7 +100,9 @@
       border: 1px solid var(--border);
       border-radius: 14px;
       box-shadow: var(--card-shadow);
-      transition: box-shadow .2s, transform .15s
+      transition: box-shadow .2s, transform .15s;
+      overflow: hidden;
+      min-width: 0
     }
 
     .card:hover {
@@ -335,7 +337,9 @@
       margin-top: 10px;
       border-radius: 8px;
       overflow: hidden;
-      border: 1px solid var(--border)
+      border: 1px solid var(--border);
+      max-width: 100%;
+      box-sizing: border-box
     }
 
     .json-viewer.open {
@@ -379,11 +383,13 @@
       line-height: 1.7;
       padding: 12px 14px;
       background: var(--bg);
-      overflow-x: auto;
-      max-height: 320px;
+      overflow-x: hidden;
       overflow-y: auto;
+      max-height: 340px;
       margin: 0;
-      white-space: pre
+      white-space: pre-wrap;
+      word-break: break-word;
+      overflow-wrap: break-word
     }
 
     /* JSON syntax colours */
@@ -1120,25 +1126,79 @@
       return [...ids];
     }
 
-    // CORS proxy fallback list (public proxies for development use)
+    // ─── CORS-AWARE FETCH ────────────────────────────────────────
+    // Each proxy has a different URL format — some need encoded, some don't
     const CORS_PROXIES = [
-      '', // direct first
-      'https://corsproxy.io/?',
-      'https://api.allorigins.win/raw?url=',
+      { build: u => u, label: 'direct' },
+      { build: u => 'https://corsproxy.io/?' + encodeURIComponent(u), label: 'corsproxy' },
+      { build: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u), label: 'allorigins' },
+      { build: u => 'https://cors-anywhere.herokuapp.com/' + u, label: 'cors-anywhere' },
     ];
 
-    async function fetchWithCORSFallback(url, timeoutMs = 10000) {
+    // Detect if a response body is an HTML error page (proxy or server returning HTML)
+    function isHTMLResponse(text) {
+      const t = text.trim().toLowerCase();
+      return t.startsWith('<!doctype') || t.startsWith('<html') || t.startsWith('<!-');
+    }
+
+    // Smart fetch: tries direct first, then falls back through CORS proxies
+    // opts = API-level options (method, headers). Proxies only get method, no custom headers.
+    async function smartFetch(url, opts = {}, timeoutMs = 12000) {
+      let lastErr = null;
+
       for (let i = 0; i < CORS_PROXIES.length; i++) {
-        const proxyUrl = CORS_PROXIES[i] + (CORS_PROXIES[i] ? encodeURIComponent(url) : url);
+        const proxy = CORS_PROXIES[i];
+        const proxyUrl = proxy.build(url);
+
+        // For proxy requests: only pass method, drop custom headers that confuse proxies
+        const fetchOpts = i === 0
+          ? { ...opts }
+          : { method: opts.method || 'GET' };
+
         try {
-          const r = await fetchWithTimeout(proxyUrl, {}, timeoutMs);
-          if (r.ok || r.status < 500) return r;
+          const r = await fetchWithTimeout(proxyUrl, fetchOpts, timeoutMs);
+
+          // CORS opaque responses come back as status 0 — treat as CORS block, try proxy
+          if (r.status === 0 && i < CORS_PROXIES.length - 1) {
+            lastErr = new Error('Opaque CORS response (status 0)');
+            continue;
+          }
+
+          // Read body once and store
+          const bodyText = await r.text();
+
+          // If a proxy returned its own HTML error page, skip to next proxy
+          if (isHTMLResponse(bodyText) && i < CORS_PROXIES.length - 1) {
+            lastErr = new Error('Proxy returned HTML, not API response');
+            continue;
+          }
+
+          return {
+            ok: r.ok,
+            status: r.status,
+            statusText: r.statusText,
+            _body: bodyText,
+            _proxy: proxy.label
+          };
+
         } catch (e) {
-          if (i === CORS_PROXIES.length - 1) throw e;
-          // try next proxy
+          lastErr = e;
+          const shouldRetry = (e instanceof TypeError) ||
+            e.message.includes('Failed to fetch') ||
+            e.message.includes('NetworkError') ||
+            e.message.includes('CORS') ||
+            e.name === 'TypeError';
+          if (!shouldRetry || i === CORS_PROXIES.length - 1) break;
+          // try next proxy silently
         }
       }
-      throw new Error('All CORS proxy attempts failed');
+
+      throw lastErr || new Error('All fetch attempts failed');
+    }
+
+    // Legacy wrapper for fetchClients (returns native Response-like object)
+    async function fetchWithCORSFallback(url, timeoutMs = 10000) {
+      return smartFetch(url, {}, timeoutMs);
     }
 
     async function fetchClients() {
@@ -1148,7 +1208,9 @@
       btn.disabled = true; btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation:spin .7s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Loading…';
       try {
         const r = await fetchWithCORSFallback(url, 10000);
-        const data = await r.json();
+        const rawText = r._body || '';
+        if (isHTMLResponse(rawText)) throw new Error('Server returned HTML instead of JSON — check the URL or if auth is required');
+        const data = JSON.parse(rawText);
 
         // Extract all "id" fields recursively
         const ids = extractIds(data);
@@ -1260,19 +1322,48 @@
     async function callAPI(name, url, idx) {
       const start = performance.now();
       try {
-        const r = await fetchWithTimeout(url, {
+        const r = await smartFetch(url, {
           method: 'GET',
-          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
+          headers: { 'Accept': 'application/json' }
         }, 12000);
         const elapsed = Math.round(performance.now() - start);
-        let body = ''; let parsed = null;
-        try { body = await r.text(); parsed = JSON.parse(body); } catch (e) { }
+        const body = r._body || '';
+        let parsed = null;
+
+        // Detect HTML response (e.g. login page, proxy error page)
+        if (isHTMLResponse(body)) {
+          return {
+            status: 'fail',
+            statusCode: r.status || 'HTML',
+            time: elapsed,
+            body: '⚠ Server returned an HTML page instead of JSON.\n' +
+              'This usually means:\n' +
+              '• The endpoint requires authentication\n' +
+              '• CORS is blocked and proxy returned an error page\n' +
+              '• The URL redirects to a login screen\n\n' +
+              'Raw preview:\n' + body.slice(0, 300),
+            parsed: null,
+            _proxy: r._proxy
+          };
+        }
+
+        // Try parse as JSON
+        try { parsed = JSON.parse(body); } catch (e) { }
+
         const status = classifyStatus(r.status, parsed);
-        return { status, statusCode: r.status, time: elapsed, body: body || '(empty)', parsed };
+        return { status, statusCode: r.status, time: elapsed, body: body || '(empty)', parsed, _proxy: r._proxy };
       } catch (ex) {
         const elapsed = Math.round(performance.now() - start);
         const isTimeout = ex.name === 'AbortError';
-        return { status: 'fail', statusCode: isTimeout ? 'TIMEOUT' : 'NET_ERR', time: elapsed, body: ex.message, parsed: null };
+        let errMsg = ex.message || 'Unknown error';
+        if (errMsg.includes('Failed to fetch') || errMsg.includes('NetworkError')) {
+          errMsg = 'CORS or network error — request blocked by browser.\n' +
+            'The API may require:\n' +
+            '• CORS headers on the server\n' +
+            '• A backend proxy\n\n' +
+            'Original error: ' + ex.message;
+        }
+        return { status: 'fail', statusCode: isTimeout ? 'TIMEOUT' : 'NET_ERR', time: elapsed, body: errMsg, parsed: null };
       }
     }
 
@@ -1333,17 +1424,20 @@
 
     function syntaxHighlightJSON(json) {
       if (typeof json !== 'string') json = JSON.stringify(json, null, 2);
-      return json
-        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/("(\u[a-zA-Z0-9]{4}|\[^u]|[^\"])*"(\s*:)?|(true|false|null)|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (m) {
-          if (/^"/.test(m)) {
-            if (/:$/.test(m)) return '<span class="jk">' + m + '</span>';
-            return '<span class="js">' + m + '</span>';
-          }
-          if (/true|false/.test(m)) return '<span class="jb">' + m + '</span>';
-          if (/null/.test(m)) return '<span class="jnull">' + m + '</span>';
-          return '<span class="jn">' + m + '</span>';
-        });
+      // Escape HTML entities first
+      const esc = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      // Regex: capture key-strings (followed by :), value-strings, booleans, null, numbers
+      return esc.replace(
+        /("(?:\\.|[^"\\])*")\s*:|("(?:\\.|[^"\\])*")|(true|false)|(null)|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g,
+        function (match, key, str, bool, nil, num) {
+          if (key !== undefined) return '<span class="jk">' + key + '</span>:';
+          if (str !== undefined) return '<span class="js">' + str + '</span>';
+          if (bool !== undefined) return '<span class="jb">' + bool + '</span>';
+          if (nil !== undefined) return '<span class="jnull">' + nil + '</span>';
+          if (num !== undefined) return '<span class="jn">' + num + '</span>';
+          return match;
+        }
+      );
     }
 
     function renderCard(api, result, idx) {
@@ -1390,13 +1484,14 @@
     </div>
     <div id="viewer-${id}" class="json-viewer">
       <div class="json-viewer-toolbar">
-        <div style="display:flex;gap:10px;align-items:center">
-          <span style="color:var(--accent);font-weight:700">${bodyType}</span>
-          <span>${sizeLabel}</span>
-          <span style="color:var(--border)">|</span>
-          <span style="color:var(--muted);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${escHtml(api.url)}">${escHtml(api.url)}</span>
+        <div style="display:flex;gap:8px;align-items:center;min-width:0;overflow:hidden">
+          <span style="color:var(--accent);font-weight:700;flex-shrink:0">${bodyType}</span>
+          <span style="flex-shrink:0">${sizeLabel}</span>
+          ${(result._proxy && result._proxy !== 'direct') ? ('<span style="color:#f97316;font-size:.65rem;font-weight:700;flex-shrink:0">via ' + escHtml(result._proxy || '') + '</span>') : ''}
+          <span style="color:var(--border);flex-shrink:0">|</span>
+          <span style="color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0" title="${escHtml(api.url)}">${escHtml(api.url)}</span>
         </div>
-        <button class="json-viewer-copy" onclick="copyResponse('${id}')">Copy</button>
+        <button class="json-viewer-copy" onclick="copyResponse('${id}')" style="flex-shrink:0">Copy</button>
       </div>
       <pre class="json-body">${jsonDisplay}</pre>
     </div>`;

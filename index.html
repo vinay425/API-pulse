@@ -988,6 +988,18 @@
           </div>
           <div class="text-xs mt-1" style="color:var(--muted)">Parallel requests at a time</div>
         </div>
+
+        <!-- Proxy fallback setting -->
+        <div class="card p-4">
+          <div class="section-label">Proxy Fallback</div>
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" id="proxy-fallback" onchange="toggleProxyFallback(this.checked)" />
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+            <span class="text-xs" style="color:var(--muted)">Enable CORS proxy fallback</span>
+          </label>
+          <div class="text-xs mt-1" style="color:var(--muted)">Use proxy if direct API call fails due to CORS</div>
+        </div>
       </aside>
 
       <!-- RIGHT PANEL: RESULTS -->
@@ -1189,33 +1201,85 @@
       return [...ids];
     }
 
-    // ─── DIRECT FETCH ────────────────────────────────────────
-    // Direct fetch only - no CORS proxy fallbacks
+    // ─── CORS-AWARE FETCH ────────────────────────────────────────
+    // Each proxy has a different URL format — some need encoded, some don't
+    const CORS_PROXIES = [
+      { build: u => u, label: 'direct' },
+      { build: u => 'https://corsproxy.io/?' + encodeURIComponent(u), label: 'corsproxy' },
+      { build: u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u), label: 'allorigins' },
+      { build: u => 'https://cors-anywhere.herokuapp.com/' + u, label: 'cors-anywhere' },
+    ];
 
-    // Detect if a response body is an HTML error page (server returning HTML)
+    // Global proxy fallback setting
+    let useProxyFallback = false;
+
+    // Detect if a response body is an HTML error page (proxy or server returning HTML)
     function isHTMLResponse(text) {
       const t = text.trim().toLowerCase();
       return t.startsWith('<!doctype') || t.startsWith('<html') || t.startsWith('<!-');
     }
 
-    // Direct fetch: only tries direct connection
+    // Smart fetch: tries direct first, then falls back through CORS proxies if enabled
     async function smartFetch(url, opts = {}, timeoutMs = 12000) {
-      try {
-        const r = await fetchWithTimeout(url, opts, timeoutMs);
+      let lastErr = null;
+      const maxAttempts = useProxyFallback ? CORS_PROXIES.length : 1;
 
-        // Read body once and store
-        const bodyText = await r.text();
+      for (let i = 0; i < maxAttempts; i++) {
+        const proxy = CORS_PROXIES[i];
+        const proxyUrl = proxy.build(url);
 
-        return {
-          ok: r.ok,
-          status: r.status,
-          statusText: r.statusText,
-          _body: bodyText,
-          _proxy: 'direct'
-        };
+        // For proxy requests: only pass method, drop custom headers that confuse proxies
+        const fetchOpts = i === 0
+          ? { ...opts }
+          : { method: opts.method || 'GET' };
 
-      } catch (e) {
-        throw e;
+        try {
+          const r = await fetchWithTimeout(proxyUrl, fetchOpts, timeoutMs);
+
+          // CORS opaque responses come back as status 0 — treat as CORS block, try proxy if enabled
+          if (r.status === 0 && i < maxAttempts - 1) {
+            lastErr = new Error('Opaque CORS response (status 0)');
+            continue;
+          }
+
+          // Read body once and store
+          const bodyText = await r.text();
+
+          // If a proxy returned its own HTML error page, skip to next proxy
+          if (isHTMLResponse(bodyText) && i < maxAttempts - 1) {
+            lastErr = new Error('Proxy returned HTML, not API response');
+            continue;
+          }
+
+          return {
+            ok: r.ok,
+            status: r.status,
+            statusText: r.statusText,
+            _body: bodyText,
+            _proxy: proxy.label
+          };
+
+        } catch (e) {
+          lastErr = e;
+          const shouldRetry = (e instanceof TypeError) ||
+            e.message.includes('Failed to fetch') ||
+            e.message.includes('NetworkError') ||
+            e.message.includes('CORS') ||
+            e.name === 'TypeError';
+          if (!shouldRetry || i === maxAttempts - 1) break;
+          // try next proxy silently
+        }
+      }
+
+      throw lastErr || new Error('All fetch attempts failed');
+    }
+
+    // Toggle proxy fallback
+    function toggleProxyFallback(enabled) {
+      useProxyFallback = enabled;
+      const note = document.querySelector('#client-api-url').parentElement.querySelector('.text-xs.mt-1');
+      if (note) {
+        note.textContent = enabled ? 'CORS proxy fallback enabled' : 'Direct API calls only';
       }
     }
 
@@ -2084,6 +2148,9 @@ body{font-family:'Nunito Sans',system-ui,sans-serif;background:#f8fafc;color:#11
     window.addEventListener('resize', checkLayout); checkLayout();
 
     // ─── SERVICE WORKER ───────────────────────────────────────
+    // Initialize proxy fallback toggle
+    document.getElementById('proxy-fallback').checked = useProxyFallback;
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').then(() => { }).catch(() => { });
